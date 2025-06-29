@@ -8,13 +8,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"todo-time-tracker/proto/tag"
+	"todo-time-tracker/proto/model"
 	"todo-time-tracker/proto/ttt"
 )
 
 // In-memory storage for tags (replace with database later)
 var (
-	tags   = make(map[string]*tag.Tag)
+	tags   = make(map[string]*model.Tag)
 	tagsMu sync.RWMutex
 	nextID int64 = 1
 )
@@ -33,7 +33,7 @@ func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.
 	defer tagsMu.Unlock()
 
 	// Create new tag
-	newTag := &tag.Tag{
+	newTag := &model.Tag{
 		Id:   nextID,
 		Uuid: generateUUID(),
 		Name: req.Name,
@@ -84,7 +84,7 @@ func (s *TTTServer) ListTags(ctx context.Context, req *ttt.ListTagsReq) (*ttt.Li
 	defer tagsMu.RUnlock()
 
 	// Collect all tags
-	var allTags []*tag.Tag
+	var allTags []*model.Tag
 	for _, t := range tags {
 		allTags = append(allTags, t)
 	}

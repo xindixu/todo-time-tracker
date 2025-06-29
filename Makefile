@@ -9,7 +9,7 @@ SERVER_BINARY_PATH=./bin/$(SERVER_BINARY_NAME)
 # Generate protobuf code
 proto-gen:
 	@echo "Generating protobuf code..."
-	protoc --go_out=. --go-grpc_out=. proto/*.proto
+    protoc --go_out=. --go-grpc_out=. proto/*.proto
 
 # Build the server
 build-server:

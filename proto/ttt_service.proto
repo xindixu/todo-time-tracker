@@ -4,7 +4,7 @@ package ttt;
 
 option go_package = "todo-time-tracker/proto/ttt";
 
-import "proto/tag.proto";
+import "proto/model.proto";
 import "proto/context.proto";
 
 // TTTService defines the main gRPC service for Todo Time Tracker
@@ -25,7 +25,7 @@ message GetTagReq {
 }
 
 message GetTagResp {
-  tag.Tag tag = 1;
+  model.Tag tag = 1;
 }
 
 message ListTagsReq {
@@ -34,7 +34,7 @@ message ListTagsReq {
 }
 
 message ListTagsResp {
-  repeated tag.Tag tags = 1;
+  repeated model.Tag tags = 1;
 }
 
 message CreateTagReq {
@@ -43,7 +43,7 @@ message CreateTagReq {
 }
 
 message CreateTagResp {
-  tag.Tag tag = 1;
+  model.Tag tag = 1;
 }
 
 message UpdateTagReq {
@@ -53,7 +53,7 @@ message UpdateTagReq {
 }
 
 message UpdateTagResp {
-  tag.Tag tag = 1;
+  model.Tag tag = 1;
 }
 
 message DeleteTagReq {

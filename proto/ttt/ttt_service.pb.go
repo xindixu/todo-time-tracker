@@ -12,7 +12,7 @@ import (
 	reflect "reflect"
 	sync "sync"
 	context "todo-time-tracker/proto/context"
-	tag "todo-time-tracker/proto/tag"
+	model "todo-time-tracker/proto/model"
 	unsafe "unsafe"
 )
 
@@ -77,7 +77,7 @@ func (x *GetTagReq) GetUuid() string {
 
 type GetTagResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Tag           *tag.Tag               `protobuf:"bytes,1,opt,name=tag,proto3" json:"tag,omitempty"`
+	Tag           *model.Tag             `protobuf:"bytes,1,opt,name=tag,proto3" json:"tag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -112,7 +112,7 @@ func (*GetTagResp) Descriptor() ([]byte, []int) {
 	return file_proto_ttt_service_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetTagResp) GetTag() *tag.Tag {
+func (x *GetTagResp) GetTag() *model.Tag {
 	if x != nil {
 		return x.Tag
 	}
@@ -165,7 +165,7 @@ func (x *ListTagsReq) GetContext() *context.Context {
 
 type ListTagsResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Tags          []*tag.Tag             `protobuf:"bytes,1,rep,name=tags,proto3" json:"tags,omitempty"`
+	Tags          []*model.Tag           `protobuf:"bytes,1,rep,name=tags,proto3" json:"tags,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -200,7 +200,7 @@ func (*ListTagsResp) Descriptor() ([]byte, []int) {
 	return file_proto_ttt_service_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ListTagsResp) GetTags() []*tag.Tag {
+func (x *ListTagsResp) GetTags() []*model.Tag {
 	if x != nil {
 		return x.Tags
 	}
@@ -261,7 +261,7 @@ func (x *CreateTagReq) GetName() string {
 
 type CreateTagResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Tag           *tag.Tag               `protobuf:"bytes,1,opt,name=tag,proto3" json:"tag,omitempty"`
+	Tag           *model.Tag             `protobuf:"bytes,1,opt,name=tag,proto3" json:"tag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -296,7 +296,7 @@ func (*CreateTagResp) Descriptor() ([]byte, []int) {
 	return file_proto_ttt_service_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *CreateTagResp) GetTag() *tag.Tag {
+func (x *CreateTagResp) GetTag() *model.Tag {
 	if x != nil {
 		return x.Tag
 	}
@@ -365,7 +365,7 @@ func (x *UpdateTagReq) GetName() string {
 
 type UpdateTagResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Tag           *tag.Tag               `protobuf:"bytes,1,opt,name=tag,proto3" json:"tag,omitempty"`
+	Tag           *model.Tag             `protobuf:"bytes,1,opt,name=tag,proto3" json:"tag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -400,7 +400,7 @@ func (*UpdateTagResp) Descriptor() ([]byte, []int) {
 	return file_proto_ttt_service_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *UpdateTagResp) GetTag() *tag.Tag {
+func (x *UpdateTagResp) GetTag() *model.Tag {
 	if x != nil {
 		return x.Tag
 	}
@@ -499,28 +499,32 @@ var File_proto_ttt_service_proto protoreflect.FileDescriptor
 
 const file_proto_ttt_service_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/ttt_service.proto\x12\x03ttt\x1a\x0fproto/tag.proto\x1a\x13proto/context.proto\"K\n" +
+	"\x17proto/ttt_service.proto\x12\x03ttt\x1a\x11proto/model.proto\x1a\x13proto/context.proto\"K\n" +
 	"\tGetTagReq\x12*\n" +
 	"\acontext\x18\x01 \x01(\v2\x10.context.ContextR\acontext\x12\x12\n" +
-	"\x04uuid\x18\x02 \x01(\tR\x04uuid\"(\n" +
+	"\x04uuid\x18\x02 \x01(\tR\x04uuid\"*\n" +
 	"\n" +
-	"GetTagResp\x12\x1a\n" +
-	"\x03tag\x18\x01 \x01(\v2\b.tag.TagR\x03tag\"9\n" +
+	"GetTagResp\x12\x1c\n" +
+	"\x03tag\x18\x01 \x01(\v2\n" +
+	".model.TagR\x03tag\"9\n" +
 	"\vListTagsReq\x12*\n" +
-	"\acontext\x18\x01 \x01(\v2\x10.context.ContextR\acontext\",\n" +
-	"\fListTagsResp\x12\x1c\n" +
-	"\x04tags\x18\x01 \x03(\v2\b.tag.TagR\x04tags\"N\n" +
+	"\acontext\x18\x01 \x01(\v2\x10.context.ContextR\acontext\".\n" +
+	"\fListTagsResp\x12\x1e\n" +
+	"\x04tags\x18\x01 \x03(\v2\n" +
+	".model.TagR\x04tags\"N\n" +
 	"\fCreateTagReq\x12*\n" +
 	"\acontext\x18\x01 \x01(\v2\x10.context.ContextR\acontext\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"+\n" +
-	"\rCreateTagResp\x12\x1a\n" +
-	"\x03tag\x18\x01 \x01(\v2\b.tag.TagR\x03tag\"b\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"-\n" +
+	"\rCreateTagResp\x12\x1c\n" +
+	"\x03tag\x18\x01 \x01(\v2\n" +
+	".model.TagR\x03tag\"b\n" +
 	"\fUpdateTagReq\x12*\n" +
 	"\acontext\x18\x01 \x01(\v2\x10.context.ContextR\acontext\x12\x12\n" +
 	"\x04uuid\x18\x02 \x01(\tR\x04uuid\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"+\n" +
-	"\rUpdateTagResp\x12\x1a\n" +
-	"\x03tag\x18\x01 \x01(\v2\b.tag.TagR\x03tag\"N\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"-\n" +
+	"\rUpdateTagResp\x12\x1c\n" +
+	"\x03tag\x18\x01 \x01(\v2\n" +
+	".model.TagR\x03tag\"N\n" +
 	"\fDeleteTagReq\x12*\n" +
 	"\acontext\x18\x01 \x01(\v2\x10.context.ContextR\acontext\x12\x12\n" +
 	"\x04uuid\x18\x02 \x01(\tR\x04uuid\"\x0f\n" +
@@ -558,17 +562,17 @@ var file_proto_ttt_service_proto_goTypes = []any{
 	(*DeleteTagReq)(nil),    // 8: ttt.DeleteTagReq
 	(*DeleteTagResp)(nil),   // 9: ttt.DeleteTagResp
 	(*context.Context)(nil), // 10: context.Context
-	(*tag.Tag)(nil),         // 11: tag.Tag
+	(*model.Tag)(nil),       // 11: model.Tag
 }
 var file_proto_ttt_service_proto_depIdxs = []int32{
 	10, // 0: ttt.GetTagReq.context:type_name -> context.Context
-	11, // 1: ttt.GetTagResp.tag:type_name -> tag.Tag
+	11, // 1: ttt.GetTagResp.tag:type_name -> model.Tag
 	10, // 2: ttt.ListTagsReq.context:type_name -> context.Context
-	11, // 3: ttt.ListTagsResp.tags:type_name -> tag.Tag
+	11, // 3: ttt.ListTagsResp.tags:type_name -> model.Tag
 	10, // 4: ttt.CreateTagReq.context:type_name -> context.Context
-	11, // 5: ttt.CreateTagResp.tag:type_name -> tag.Tag
+	11, // 5: ttt.CreateTagResp.tag:type_name -> model.Tag
 	10, // 6: ttt.UpdateTagReq.context:type_name -> context.Context
-	11, // 7: ttt.UpdateTagResp.tag:type_name -> tag.Tag
+	11, // 7: ttt.UpdateTagResp.tag:type_name -> model.Tag
 	10, // 8: ttt.DeleteTagReq.context:type_name -> context.Context
 	0,  // 9: ttt.TTTService.GetTag:input_type -> ttt.GetTagReq
 	2,  // 10: ttt.TTTService.ListTags:input_type -> ttt.ListTagsReq

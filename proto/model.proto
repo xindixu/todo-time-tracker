@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package tag;
+package model;
 
-option go_package = "todo-time-tracker/proto/tag";
+option go_package = "todo-time-tracker/proto/model";
 
 // Tag message
 message Tag {
