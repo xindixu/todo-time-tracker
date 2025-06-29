@@ -1,26 +1,30 @@
 package db
 
 import (
-	"database/sql"
 	"log"
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/sqlite3"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 // DBConnection holds the database connection and query builder
 type DBConnection struct {
-	DB      *sql.DB
+	DB      *sqlx.DB
 	Builder *goqu.Database
 }
 
-// InitDatabase initializes the SQLite database connection (in-memory for now)
+// InitDatabaseConnection initializes the SQLite database connection (in-memory for now)
 func InitDatabaseConnection() (*DBConnection, error) {
-	log.Println("Initializing SQLite database (in-memory)...")
+	log.Println("🔄 Initializing SQLite database (in-memory)...")
 
 	// Open SQLite in-memory database
-	db, err := sql.Open("sqlite3", ":memory:")
+	db, err := sqlx.Connect("sqlite3", ":memory:")
 	if err != nil {
 		return nil, err
 	}
@@ -35,15 +39,16 @@ func InitDatabaseConnection() (*DBConnection, error) {
 	}
 
 	// Initialize goqu with SQLite dialect
-	builder := goqu.New("sqlite3", db)
+	dialect := goqu.Dialect("sqlite3")
+	builder := dialect.DB(db.DB)
 
 	dbConnection := &DBConnection{
 		DB:      db,
 		Builder: builder,
 	}
 
-	// Create tables
-	if err := dbConnection.createTables(); err != nil {
+	// Run migrations
+	if err := dbConnection.Migrate(); err != nil {
 		err := db.Close()
 		if err != nil {
 			log.Println("Error closing database connection:", err)
@@ -55,28 +60,25 @@ func InitDatabaseConnection() (*DBConnection, error) {
 	return dbConnection, nil
 }
 
-// createTables creates the necessary database tables
-func (d *DBConnection) createTables() error {
-	log.Println("Creating database tables...")
+// Migrate runs the database migrations
+func (d *DBConnection) Migrate() error {
+	log.Println("Running database migrations...")
 
-	// Create tags table
-	createTagsTable := `
-		CREATE TABLE IF NOT EXISTS tags (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			uuid TEXT UNIQUE NOT NULL,
-			name TEXT NOT NULL,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-		);
-		CREATE INDEX IF NOT EXISTS idx_tags_uuid ON tags(uuid);
-		CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
-	`
-
-	if _, err := d.DB.Exec(createTagsTable); err != nil {
+	driver, err := sqlite3.WithInstance(d.DB.DB, &sqlite3.Config{})
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://db/migrations",
+		"sqlite3", driver,
+	)
+	if err != nil {
+		return err
+	}
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return err
 	}
 
-	log.Println("✅ Tables created successfully")
 	return nil
 }
 

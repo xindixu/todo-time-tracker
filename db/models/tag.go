@@ -11,7 +11,6 @@ type Tag struct {
 	Name      string    `db:"name" json:"name"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
-	CreatedBy string    `db:"created_by" json:"created_by"`
 }
 
 // TableName returns the table name for the Tag model
