@@ -24,8 +24,9 @@ func main() {
 		log.Fatalf("Failed to listen on port %s: %v", port, err)
 	}
 
-	// Create a new gRPC server
-	s := grpc.NewServer()
+	// Create a new gRPC server with interceptors
+	serverOptions := server.GetServerOptions()
+	s := grpc.NewServer(serverOptions...)
 
 	// Register the TTT service
 	tttServer := server.NewTTTServer()

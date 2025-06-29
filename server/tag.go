@@ -2,10 +2,8 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"sync"
-	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,23 +19,13 @@ var (
 	nextID int64 = 1
 )
 
-// generateUUID generates a simple UUID (replace with proper UUID library later)
-func generateUUID() string {
-	return fmt.Sprintf("tag-%d-%d", time.Now().UnixNano(), nextID)
-}
-
 // CreateTag creates a new tag
 func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.CreateTagResp, error) {
-	log.Printf("CreateTag called by user: %s, name: %s", req.Context.Username, req.Name)
+	username := getUsername(ctx)
 
-	// Validate input
+	// Validate input (authentication is handled by interceptor)
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "tag name cannot be empty")
-	}
-
-	// Validate context
-	if req.Context == nil || req.Context.Username == "" {
-		return nil, status.Error(codes.InvalidArgument, "context with username is required")
 	}
 
 	tagsMu.Lock()
@@ -53,7 +41,7 @@ func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.
 	nextID++
 	tags[newTag.Uuid] = newTag
 
-	log.Printf("Created tag: %s (UUID: %s) by user: %s", newTag.Name, newTag.Uuid, req.Context.Username)
+	log.Printf("CreateTag: Successfully created tag: %s (UUID: %s) by user: %s", newTag.Name, newTag.Uuid, username)
 
 	return &ttt.CreateTagResp{
 		Tag: newTag,
@@ -62,16 +50,11 @@ func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.
 
 // GetTag retrieves a tag by UUID
 func (s *TTTServer) GetTag(ctx context.Context, req *ttt.GetTagReq) (*ttt.GetTagResp, error) {
-	log.Printf("GetTag called by user: %s, UUID: %s", req.Context.Username, req.Uuid)
+	username := getUsername(ctx)
 
 	// Validate input
 	if req.Uuid == "" {
 		return nil, status.Error(codes.InvalidArgument, "tag UUID cannot be empty")
-	}
-
-	// Validate context
-	if req.Context == nil || req.Context.Username == "" {
-		return nil, status.Error(codes.InvalidArgument, "context with username is required")
 	}
 
 	tagsMu.RLock()
@@ -83,7 +66,7 @@ func (s *TTTServer) GetTag(ctx context.Context, req *ttt.GetTagReq) (*ttt.GetTag
 		return nil, status.Error(codes.NotFound, "tag not found")
 	}
 
-	log.Printf("Retrieved tag: %s (UUID: %s) by user: %s", foundTag.Name, foundTag.Uuid, req.Context.Username)
+	log.Printf("GetTag: Successfully retrieved tag: %s (UUID: %s) for user: %s", foundTag.Name, foundTag.Uuid, username)
 
 	return &ttt.GetTagResp{
 		Tag: foundTag,
@@ -92,12 +75,7 @@ func (s *TTTServer) GetTag(ctx context.Context, req *ttt.GetTagReq) (*ttt.GetTag
 
 // ListTags lists all tags
 func (s *TTTServer) ListTags(ctx context.Context, req *ttt.ListTagsReq) (*ttt.ListTagsResp, error) {
-	log.Printf("ListTags called by user: %s", req.Context.Username)
-
-	// Validate context
-	if req.Context == nil || req.Context.Username == "" {
-		return nil, status.Error(codes.InvalidArgument, "context with username is required")
-	}
+	username := getUsername(ctx)
 
 	tagsMu.RLock()
 	defer tagsMu.RUnlock()
@@ -108,7 +86,7 @@ func (s *TTTServer) ListTags(ctx context.Context, req *ttt.ListTagsReq) (*ttt.Li
 		allTags = append(allTags, t)
 	}
 
-	log.Printf("Listed %d tags for user: %s", len(allTags), req.Context.Username)
+	log.Printf("ListTags: Successfully listed %d tags for user: %s", len(allTags), username)
 
 	return &ttt.ListTagsResp{
 		Tags: allTags,
@@ -117,7 +95,7 @@ func (s *TTTServer) ListTags(ctx context.Context, req *ttt.ListTagsReq) (*ttt.Li
 
 // UpdateTag updates an existing tag
 func (s *TTTServer) UpdateTag(ctx context.Context, req *ttt.UpdateTagReq) (*ttt.UpdateTagResp, error) {
-	log.Printf("UpdateTag called by user: %s, UUID: %s, new name: %s", req.Context.Username, req.Uuid, req.Name)
+	username := getUsername(ctx)
 
 	// Validate input
 	if req.Uuid == "" {
@@ -125,11 +103,6 @@ func (s *TTTServer) UpdateTag(ctx context.Context, req *ttt.UpdateTagReq) (*ttt.
 	}
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "tag name cannot be empty")
-	}
-
-	// Validate context
-	if req.Context == nil || req.Context.Username == "" {
-		return nil, status.Error(codes.InvalidArgument, "context with username is required")
 	}
 
 	tagsMu.Lock()
@@ -144,7 +117,7 @@ func (s *TTTServer) UpdateTag(ctx context.Context, req *ttt.UpdateTagReq) (*ttt.
 	oldName := foundTag.Name
 	foundTag.Name = req.Name
 
-	log.Printf("Updated tag: %s -> %s (UUID: %s) by user: %s", oldName, foundTag.Name, foundTag.Uuid, req.Context.Username)
+	log.Printf("UpdateTag: Successfully updated tag: %s -> %s (UUID: %s) by user: %s", oldName, foundTag.Name, foundTag.Uuid, username)
 
 	return &ttt.UpdateTagResp{
 		Tag: foundTag,
@@ -153,16 +126,11 @@ func (s *TTTServer) UpdateTag(ctx context.Context, req *ttt.UpdateTagReq) (*ttt.
 
 // DeleteTag deletes a tag by UUID
 func (s *TTTServer) DeleteTag(ctx context.Context, req *ttt.DeleteTagReq) (*ttt.DeleteTagResp, error) {
-	log.Printf("DeleteTag called by user: %s, UUID: %s", req.Context.Username, req.Uuid)
+	username := getUsername(ctx)
 
 	// Validate input
 	if req.Uuid == "" {
 		return nil, status.Error(codes.InvalidArgument, "tag UUID cannot be empty")
-	}
-
-	// Validate context
-	if req.Context == nil || req.Context.Username == "" {
-		return nil, status.Error(codes.InvalidArgument, "context with username is required")
 	}
 
 	tagsMu.Lock()
@@ -177,7 +145,7 @@ func (s *TTTServer) DeleteTag(ctx context.Context, req *ttt.DeleteTagReq) (*ttt.
 	// Delete tag
 	delete(tags, req.Uuid)
 
-	log.Printf("Deleted tag: %s (UUID: %s) by user: %s", foundTag.Name, foundTag.Uuid, req.Context.Username)
+	log.Printf("DeleteTag: Successfully deleted tag: %s (UUID: %s) by user: %s", foundTag.Name, foundTag.Uuid, username)
 
 	return &ttt.DeleteTagResp{}, nil
 }
