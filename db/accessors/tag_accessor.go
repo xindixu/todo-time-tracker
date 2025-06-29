@@ -6,7 +6,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 
-	"todo-time-tracker/db"
 	"todo-time-tracker/db/models"
 )
 
@@ -24,7 +23,6 @@ func (a *DBAccessor) CreateTag(ctx context.Context, uuid, name string) (*models.
 	now := time.Now()
 	tagsTable := goqu.T("tags")
 
-	// Create the tag model
 	tag := &models.Tag{
 		UUID:      uuid,
 		Name:      name,
@@ -32,29 +30,24 @@ func (a *DBAccessor) CreateTag(ctx context.Context, uuid, name string) (*models.
 		UpdatedAt: now,
 	}
 
-	// Convert model to record using the generic function
-	record := db.ModelToRecord(tag)
-
-	// Insert the tag
-	insert := a.Builder.Insert(tagsTable).Rows(record)
+	// Build insert query with RETURNING clause to get the inserted ID
+	insert := a.Builder.Insert(tagsTable).
+		Rows(tag).
+		Returning("id")
 
 	query, args, err := insert.ToSQL()
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := a.DB.ExecContext(ctx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	id, err := result.LastInsertId()
+	var insertedID int64
+	err = a.DB.QueryRowContext(ctx, query, args...).Scan(&insertedID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Set the ID on the tag and return it
-	tag.ID = id
+	tag.ID = insertedID
 	return tag, nil
 }
 
@@ -71,9 +64,7 @@ func (a *DBAccessor) GetTagByUUID(ctx context.Context, uuid string) (*models.Tag
 		return nil, err
 	}
 
-	err = a.DB.QueryRowContext(ctx, query, args...).Scan(
-		&tag.ID, &tag.UUID, &tag.Name, &tag.CreatedAt, &tag.UpdatedAt,
-	)
+	err = a.DB.QueryRowxContext(ctx, query, args...).StructScan(&tag)
 	if err != nil {
 		return nil, err
 	}

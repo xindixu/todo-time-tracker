@@ -11,28 +11,64 @@ proto-gen:
 	@echo "Generating protobuf code..."
     protoc --go_out=. --go-grpc_out=. proto/*.proto
 
-# Build the server
+
+# Database
+DATABASE_USER=tttuser
+DATABASE_NAME=tttdb
+DATABASE_URL=postgres://$(DATABASE_USER)@localhost:5432/$(DATABASE_NAME)?sslmode=disable
+
+create-db:
+	@echo "Creating database..."
+	createdb $(DATABASE_NAME)
+	createuser $(DATABASE_USER)
+
+connect-db:
+	@echo "Connecting to database..."
+	psql -h localhost -p 5432 -U $(DATABASE_USER) -d $(DATABASE_NAME)
+
+drop-db:
+	@echo "Dropping database..."
+	dropdb $(DATABASE_NAME)
+	dropuser $(DATABASE_USER)
+
+# Server
 build-server:
 	@echo "Building $(SERVER_BINARY_NAME)..."
 	@mkdir -p bin
 	go build -o $(SERVER_BINARY_PATH) ./cmd/server
 
-# Build the CLI client
-build-cli:
-	@echo "Building $(CLI_BINARY_NAME)..."
-	@mkdir -p bin
-	go build -o $(CLI_BINARY_PATH) ./cmd/cli
-
-# Build both server and client
-build: build-server build-cli
-
-# Run the server
 run-server: build-server
-	$(SERVER_BINARY_PATH)
+	@echo "Running $(SERVER_BINARY_NAME)..."
+	DATABASE_URL=$(DATABASE_URL) $(SERVER_BINARY_PATH)
 
-# Run the CLI (you'll need to specify arguments)
-run: build-cli
-	$(CLI_BINARY_PATH)
+
+# Docker
+# run-server-docker:
+# 	@echo "Building and running server with Docker..."
+# 	cd cmd/server && docker compose up --build
+
+# stop-server-docker:
+# 	@echo "Stopping Docker containers..."
+# 	cd cmd/server && docker compose down
+
+# clean-docker:
+# 	@echo "Cleaning Docker containers and images..."
+# 	cd cmd/server && docker compose down --volumes --remove-orphans
+# 	docker system prune -f
+
+# logs-docker:
+# 	@echo "Showing Docker logs..."
+# 	cd cmd/server && docker compose logs -f
+
+# restart-server-docker: stop-server-docker run-server-docker
+
+
+
+
+# # Run the CLI (you'll need to specify arguments)
+# run: build-cli
+# 	$(CLI_BINARY_PATH)
+# Development
 
 # Test the application
 test:
@@ -74,20 +110,17 @@ install: build
 # Show help
 help:
 	@echo "Available targets:"
-	@echo "  proto-gen     Generate protobuf Go code"
-	@echo "  build         Build both server and CLI"
-	@echo "  build-server  Build the gRPC server"
-	@echo "  build-cli     Build the CLI client"
-	@echo "  run-server    Build and run the server"
-	@echo "  run           Build and run the CLI"
-	@echo "  test          Run tests"
-	@echo "  test-coverage Run tests with coverage report"
-	@echo "  clean         Clean build artifacts"
-	@echo "  fmt           Format code"
-	@echo "  lint          Run linter"
-	@echo "  install-tools Install development tools"
-	@echo "  install       Install binary to GOPATH/bin"
-	@echo "  help          Show this help message"
+	@echo "  proto-gen              Generate protobuf Go code"
+	@echo "  build-server           Build the gRPC server (local)"
+	@echo "  run-server             Build and run the server (local)"
+	@echo "  test                   Run tests"
+	@echo "  test-coverage          Run tests with coverage report"
+	@echo "  clean                  Clean build artifacts"
+	@echo "  fmt                    Format code"
+	@echo "  lint                   Run linter"
+	@echo "  install-tools          Install development tools"
+	@echo "  install                Install binary to GOPATH/bin"
+	@echo "  help                   Show this help message"
 
 # Default target
 .DEFAULT_GOAL := help

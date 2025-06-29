@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"os"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -20,11 +21,16 @@ func main() {
 	log.Println("Starting Todo Time Tracker gRPC server...")
 
 	// Initialize database
-	database, err := db.InitDatabaseConnection()
+	dbConnStr := os.Getenv("DATABASE_URL")
+	database, err := db.InitDatabaseConnection(dbConnStr)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer database.Close()
+	defer func() {
+		if err = database.DB.Close(); err != nil {
+			log.Fatalf("Failed to close database: %v", err)
+		}
+	}()
 
 	// Create a TCP listener
 	lis, err := net.Listen("tcp", port)

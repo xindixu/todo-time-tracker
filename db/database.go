@@ -4,12 +4,12 @@ import (
 	"log"
 
 	"github.com/doug-martin/goqu/v9"
-	_ "github.com/doug-martin/goqu/v9/dialect/sqlite3"
+	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
@@ -19,12 +19,12 @@ type DBConnection struct {
 	Builder *goqu.Database
 }
 
-// InitDatabaseConnection initializes the SQLite database connection (in-memory for now)
-func InitDatabaseConnection() (*DBConnection, error) {
-	log.Println("🔄 Initializing SQLite database (in-memory)...")
+// InitDatabaseConnection initializes the PostgreSQL database connection
+func InitDatabaseConnection(dbConnStr string) (*DBConnection, error) {
+	log.Println("🔄 Initializing PostgreSQL database...")
 
-	// Open SQLite in-memory database
-	db, err := sqlx.Connect("sqlite3", ":memory:")
+	// Open PostgreSQL database
+	db, err := sqlx.Connect("postgres", dbConnStr)
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +38,8 @@ func InitDatabaseConnection() (*DBConnection, error) {
 		return nil, err
 	}
 
-	// Initialize goqu with SQLite dialect
-	dialect := goqu.Dialect("sqlite3")
+	// Initialize goqu with PostgreSQL dialect
+	dialect := goqu.Dialect("postgres")
 	builder := dialect.DB(db.DB)
 
 	dbConnection := &DBConnection{
@@ -64,19 +64,48 @@ func InitDatabaseConnection() (*DBConnection, error) {
 func (d *DBConnection) Migrate() error {
 	log.Println("Running database migrations...")
 
-	driver, err := sqlite3.WithInstance(d.DB.DB, &sqlite3.Config{})
+	driver, err := postgres.WithInstance(d.DB.DB, &postgres.Config{})
 	if err != nil {
+		log.Printf("Failed to create postgres driver: %v", err)
 		return err
 	}
+
+	// Use absolute path for migrations to avoid path resolution issues
+	migrationPath := "file://./db/migrations"
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://db/migrations",
-		"sqlite3", driver,
+		migrationPath,
+		"postgres", driver,
 	)
 	if err != nil {
+		log.Printf("Failed to create migration instance with path %s: %v", migrationPath, err)
 		return err
 	}
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+
+	// Check current version and dirty state
+	version, dirty, err := m.Version()
+	if err != nil && err != migrate.ErrNilVersion {
+		log.Printf("Failed to get migration version: %v", err)
 		return err
+	}
+
+	if dirty {
+		log.Printf("Database is in dirty state at version %d. Attempting to force version...", version)
+		if err = m.Force(int(version)); err != nil {
+			log.Printf("Failed to force version %d: %v", version, err)
+			return err
+		}
+		log.Printf("Successfully forced version %d to clean state", version)
+	}
+
+	if err = m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Printf("Migration failed: %v", err)
+		return err
+	}
+
+	if err == migrate.ErrNoChange {
+		log.Println("No new migrations to apply")
+	} else {
+		log.Println("✅ Migrations applied successfully")
 	}
 
 	return nil
