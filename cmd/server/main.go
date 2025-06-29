@@ -20,7 +20,7 @@ func main() {
 	log.Println("Starting Todo Time Tracker gRPC server...")
 
 	// Initialize database
-	database, err := db.InitDatabase()
+	database, err := db.InitDatabaseConnection()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}

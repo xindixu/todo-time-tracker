@@ -19,15 +19,15 @@ import (
 // TTTServer implements the TTTService gRPC service
 type TTTServer struct {
 	ttt.UnimplementedTTTServiceServer
-	db       *db.Database
+	db       *db.DBConnection
 	accessor *accessors.DBAccessor
 }
 
 // NewTTTServer creates a new TTTServer instance with database connection
-func NewTTTServer(database *db.Database) *TTTServer {
+func NewTTTServer(db *db.DBConnection) *TTTServer {
 	return &TTTServer{
-		db:       database,
-		accessor: accessors.NewDBAccessor(database),
+		db:       db,
+		accessor: accessors.NewDBAccessor(db),
 	}
 }
 

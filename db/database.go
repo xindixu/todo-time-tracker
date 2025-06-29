@@ -9,14 +9,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// Database holds the database connection and query builder
-type Database struct {
+// DBConnection holds the database connection and query builder
+type DBConnection struct {
 	DB      *sql.DB
 	Builder *goqu.Database
 }
 
 // InitDatabase initializes the SQLite database connection (in-memory for now)
-func InitDatabase() (*Database, error) {
+func InitDatabaseConnection() (*DBConnection, error) {
 	log.Println("Initializing SQLite database (in-memory)...")
 
 	// Open SQLite in-memory database
@@ -31,10 +31,10 @@ func InitDatabase() (*Database, error) {
 		return nil, err
 	}
 
-	// Initialize Goqu with SQLite dialect
+	// Initialize goqu with SQLite dialect
 	builder := goqu.New("sqlite3", db)
 
-	database := &Database{
+	database := &DBConnection{
 		DB:      db,
 		Builder: builder,
 	}
@@ -50,7 +50,7 @@ func InitDatabase() (*Database, error) {
 }
 
 // createTables creates the necessary database tables
-func (d *Database) createTables() error {
+func (d *DBConnection) createTables() error {
 	log.Println("Creating database tables...")
 
 	// Create tags table
@@ -75,12 +75,12 @@ func (d *Database) createTables() error {
 }
 
 // Close closes the database connection
-func (d *Database) Close() error {
+func (d *DBConnection) Close() error {
 	log.Println("Closing database connection...")
 	return d.DB.Close()
 }
 
 // Health checks if the database connection is healthy
-func (d *Database) Health() error {
+func (d *DBConnection) Health() error {
 	return d.DB.Ping()
 }
