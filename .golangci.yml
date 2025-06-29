@@ -46,3 +46,6 @@ linters:
 
 issues:
   exclude-use-default: false
+  exclude:
+    # Allow goqu usage - import resolution false positive
+    - "undefined: goqu"

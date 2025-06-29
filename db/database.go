@@ -27,26 +27,32 @@ func InitDatabaseConnection() (*DBConnection, error) {
 
 	// Test the connection
 	if err := db.Ping(); err != nil {
-		db.Close()
+		err := db.Close()
+		if err != nil {
+			log.Println("Error closing database connection:", err)
+		}
 		return nil, err
 	}
 
 	// Initialize goqu with SQLite dialect
 	builder := goqu.New("sqlite3", db)
 
-	database := &DBConnection{
+	dbConnection := &DBConnection{
 		DB:      db,
 		Builder: builder,
 	}
 
 	// Create tables
-	if err := database.createTables(); err != nil {
-		db.Close()
+	if err := dbConnection.createTables(); err != nil {
+		err := db.Close()
+		if err != nil {
+			log.Println("Error closing database connection:", err)
+		}
 		return nil, err
 	}
 
 	log.Println("✅ Database initialized successfully")
-	return database, nil
+	return dbConnection, nil
 }
 
 // createTables creates the necessary database tables

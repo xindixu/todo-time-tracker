@@ -26,11 +26,6 @@ build-cli:
 # Build both server and client
 build: build-server build-cli
 
-# Build and run hello world test
-test-hello:
-	@echo "Running hello world test..."
-	go run test_hello.go
-
 # Run the server
 run-server: build-server
 	$(SERVER_BINARY_PATH)
@@ -55,7 +50,6 @@ clean:
 	@echo "Cleaning..."
 	rm -rf bin/
 	rm -f coverage.out coverage.html
-	rm -f test_hello
 
 # Format code
 fmt:
