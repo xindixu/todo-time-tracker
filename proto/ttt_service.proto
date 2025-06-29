@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package ttt;
+
+option go_package = "todo-time-tracker/proto/ttt";
+
+import "proto/tag.proto";
+import "proto/context.proto";
+
+// TTTService defines the main gRPC service for Todo Time Tracker
+service TTTService {
+  // Tag operations
+  rpc GetTag(GetTagReq) returns (GetTagResp);
+  rpc ListTags(ListTagsReq) returns (ListTagsResp);
+  rpc CreateTag(CreateTagReq) returns (CreateTagResp);
+  rpc UpdateTag(UpdateTagReq) returns (UpdateTagResp);
+  rpc DeleteTag(DeleteTagReq) returns (DeleteTagResp);
+}
+
+// Request/Response messages for Tag operations
+
+message GetTagReq {
+  context.Context context = 1;
+  string uuid = 2;
+}
+
+message GetTagResp {
+  tag.Tag tag = 1;
+}
+
+message ListTagsReq {
+  context.Context context = 1;
+  // Could add pagination later
+}
+
+message ListTagsResp {
+  repeated tag.Tag tags = 1;
+}
+
+message CreateTagReq {
+  context.Context context = 1;
+  string name = 2;
+}
+
+message CreateTagResp {
+  tag.Tag tag = 1;
+}
+
+message UpdateTagReq {
+  context.Context context = 1;
+  string uuid = 2;
+  string name = 3;
+}
+
+message UpdateTagResp {
+  tag.Tag tag = 1;
+}
+
+message DeleteTagReq {
+  context.Context context = 1;
+  string uuid = 2;
+}
+
+message DeleteTagResp {
+}

@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package context;
+
+option go_package = "todo-time-tracker/proto/context";
+
+// Context message
+message Context {
+  string username = 1;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package tag;
+
+option go_package = "todo-time-tracker/proto/tag";
+
+// Tag message
+message Tag {
+  int64 id = 1;
+  string account_id = 2;
+  string uuid = 3;
+  string name = 4;
+}
