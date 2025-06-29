@@ -2,13 +2,13 @@ package server
 
 import (
 	"context"
-	"fmt"
-	"time"
+
+	"github.com/google/uuid"
 )
 
-// generateUUID generates a simple UUID (replace with proper UUID library later)
+// generateUUID generates a standard UUID using Google's UUID package
 func generateUUID() string {
-	return fmt.Sprintf("tag-%d-%d", time.Now().UnixNano(), nextID)
+	return uuid.New().String()
 }
 
 // getUsername extracts username from the enhanced gRPC context

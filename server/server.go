@@ -24,8 +24,8 @@ func NewTTTServer() *TTTServer {
 	return &TTTServer{}
 }
 
-// extractUsernameFromRequest uses reflection to extract username from any request with a Context field
-func extractUsernameFromRequest(req interface{}) string {
+// extractUsernameFromReq uses reflection to extract username from any request with a Context field
+func extractUsernameFromReq(req interface{}) string {
 	if req == nil {
 		return ""
 	}
@@ -56,10 +56,10 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 
 	// Extract request details for logging
 	methodName := info.FullMethod
-	username := extractUsernameFromRequest(req)
+	username := extractUsernameFromReq(req)
 
 	// Log incoming request
-	log.Printf("[REQUEST] Method: %s, User: %s, Time: %s", methodName, username, startTime.Format(time.RFC3339))
+	log.Printf("[REQUEST] Method: %s, User: %s, Request: %v, Time: %s", methodName, username, req, startTime.Format(time.RFC3339))
 
 	// Validate that username is provided for all requests
 	if username == "" {
@@ -68,8 +68,8 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 	}
 
 	// Add username to the gRPC context for downstream use
-	ctx = context.WithValue(ctx, "username", username)
-	ctx = context.WithValue(ctx, "request_start_time", startTime)
+	ctx = context.WithValue(ctx, ContextKeyUsername, username)
+	ctx = context.WithValue(ctx, ContextKeyStartTime, startTime)
 
 	// Call the actual handler
 	resp, err := handler(ctx, req)
@@ -79,11 +79,11 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 
 	// Log response
 	if err != nil {
-		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: ERROR, Error: %v",
-			methodName, username, duration, err)
+		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: ERROR, Error: %v, Response: %v",
+			methodName, username, duration, err, resp)
 	} else {
-		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: SUCCESS",
-			methodName, username, duration)
+		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: SUCCESS, Response: %v",
+			methodName, username, duration, resp)
 	}
 
 	return resp, err

@@ -22,6 +22,7 @@ var (
 // CreateTag creates a new tag
 func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.CreateTagResp, error) {
 	username := getUsername(ctx)
+	log.Printf("CreateTag: Processing request for user: %s, name: %s", username, req.Name)
 
 	// Validate input (authentication is handled by interceptor)
 	if req.Name == "" {
@@ -51,6 +52,7 @@ func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.
 // GetTag retrieves a tag by UUID
 func (s *TTTServer) GetTag(ctx context.Context, req *ttt.GetTagReq) (*ttt.GetTagResp, error) {
 	username := getUsername(ctx)
+	log.Printf("GetTag: Processing request for user: %s, UUID: %s", username, req.Uuid)
 
 	// Validate input
 	if req.Uuid == "" {
@@ -76,6 +78,7 @@ func (s *TTTServer) GetTag(ctx context.Context, req *ttt.GetTagReq) (*ttt.GetTag
 // ListTags lists all tags
 func (s *TTTServer) ListTags(ctx context.Context, req *ttt.ListTagsReq) (*ttt.ListTagsResp, error) {
 	username := getUsername(ctx)
+	log.Printf("ListTags: Processing request for user: %s", username)
 
 	tagsMu.RLock()
 	defer tagsMu.RUnlock()
@@ -96,6 +99,7 @@ func (s *TTTServer) ListTags(ctx context.Context, req *ttt.ListTagsReq) (*ttt.Li
 // UpdateTag updates an existing tag
 func (s *TTTServer) UpdateTag(ctx context.Context, req *ttt.UpdateTagReq) (*ttt.UpdateTagResp, error) {
 	username := getUsername(ctx)
+	log.Printf("UpdateTag: Processing request for user: %s, UUID: %s, new name: %s", username, req.Uuid, req.Name)
 
 	// Validate input
 	if req.Uuid == "" {
@@ -127,6 +131,7 @@ func (s *TTTServer) UpdateTag(ctx context.Context, req *ttt.UpdateTagReq) (*ttt.
 // DeleteTag deletes a tag by UUID
 func (s *TTTServer) DeleteTag(ctx context.Context, req *ttt.DeleteTagReq) (*ttt.DeleteTagResp, error) {
 	username := getUsername(ctx)
+	log.Printf("DeleteTag: Processing request for user: %s, UUID: %s", username, req.Uuid)
 
 	// Validate input
 	if req.Uuid == "" {
