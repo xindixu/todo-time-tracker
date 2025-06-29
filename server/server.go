@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"todo-time-tracker/db"
+	"todo-time-tracker/db/accessors"
 	contextpb "todo-time-tracker/proto/context"
 	"todo-time-tracker/proto/ttt"
 )
@@ -17,15 +19,20 @@ import (
 // TTTServer implements the TTTService gRPC service
 type TTTServer struct {
 	ttt.UnimplementedTTTServiceServer
+	db       *db.Database
+	accessor *accessors.DBAccessor
 }
 
-// NewTTTServer creates a new TTTServer instance
-func NewTTTServer() *TTTServer {
-	return &TTTServer{}
+// NewTTTServer creates a new TTTServer instance with database connection
+func NewTTTServer(database *db.Database) *TTTServer {
+	return &TTTServer{
+		db:       database,
+		accessor: accessors.NewDBAccessor(database),
+	}
 }
 
-// extractUsernameFromReq uses reflection to extract username from any request with a Context field
-func extractUsernameFromReq(req interface{}) string {
+// extractUsernameFromRequest uses reflection to extract username from any request with a Context field
+func extractUsernameFromRequest(req interface{}) string {
 	if req == nil {
 		return ""
 	}
@@ -56,10 +63,10 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 
 	// Extract request details for logging
 	methodName := info.FullMethod
-	username := extractUsernameFromReq(req)
+	username := extractUsernameFromRequest(req)
 
 	// Log incoming request
-	log.Printf("[REQUEST] Method: %s, User: %s, Request: %v, Time: %s", methodName, username, req, startTime.Format(time.RFC3339))
+	log.Printf("[REQUEST] Method: %s, User: %s, Time: %s", methodName, username, startTime.Format(time.RFC3339))
 
 	// Validate that username is provided for all requests
 	if username == "" {
@@ -68,8 +75,8 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 	}
 
 	// Add username to the gRPC context for downstream use
-	ctx = context.WithValue(ctx, ContextKeyUsername, username)
-	ctx = context.WithValue(ctx, ContextKeyStartTime, startTime)
+	ctx = context.WithValue(ctx, "username", username)
+	ctx = context.WithValue(ctx, "request_start_time", startTime)
 
 	// Call the actual handler
 	resp, err := handler(ctx, req)
@@ -79,11 +86,11 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 
 	// Log response
 	if err != nil {
-		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: ERROR, Error: %v, Response: %v",
-			methodName, username, duration, err, resp)
+		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: ERROR, Error: %v",
+			methodName, username, duration, err)
 	} else {
-		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: SUCCESS, Response: %v",
-			methodName, username, duration, resp)
+		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: SUCCESS",
+			methodName, username, duration)
 	}
 
 	return resp, err

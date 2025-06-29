@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	"todo-time-tracker/db"
 	"todo-time-tracker/proto/ttt"
 	"todo-time-tracker/server"
 )
@@ -18,6 +19,13 @@ const (
 func main() {
 	log.Println("Starting Todo Time Tracker gRPC server...")
 
+	// Initialize database
+	database, err := db.InitDatabase()
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+	defer database.Close()
+
 	// Create a TCP listener
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
@@ -28,8 +36,8 @@ func main() {
 	serverOptions := server.GetServerOptions()
 	s := grpc.NewServer(serverOptions...)
 
-	// Register the TTT service
-	tttServer := server.NewTTTServer()
+	// Register the TTT service with database
+	tttServer := server.NewTTTServer(database)
 	ttt.RegisterTTTServiceServer(s, tttServer)
 
 	// Register reflection service on gRPC server for development
