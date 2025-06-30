@@ -2,14 +2,7 @@ package server
 
 import (
 	"context"
-
-	"github.com/google/uuid"
 )
-
-// generateUUID generates a standard UUID using Google's UUID package
-func generateUUID() string {
-	return uuid.New().String()
-}
 
 // getUsername extracts username from the enhanced gRPC context
 func getUsername(ctx context.Context) string {

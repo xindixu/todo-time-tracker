@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -23,7 +24,7 @@ func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.
 	}
 
 	// Generate UUID for the new tag
-	uuid := generateUUID()
+	uuid := uuid.New()
 
 	// Create tag in database
 	dbTag, err := s.accessor.CreateTag(ctx, uuid, req.Name)
@@ -35,7 +36,7 @@ func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.
 	// Convert database model to protobuf model
 	protoTag := &model.Tag{
 		Id:   dbTag.ID,
-		Uuid: dbTag.UUID,
+		Uuid: dbTag.UUID.String(),
 		Name: dbTag.Name,
 	}
 

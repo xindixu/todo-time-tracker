@@ -4,14 +4,15 @@ import (
 	"context"
 	"time"
 
-	"github.com/doug-martin/goqu/v9"
-
 	"todo-time-tracker/db/models"
+
+	"github.com/doug-martin/goqu/v9"
+	"github.com/google/uuid"
 )
 
 // TagAccessor handles database operations for tags
 type TagAccessor interface {
-	CreateTag(ctx context.Context, uuid, name string) (*models.Tag, error)
+	CreateTag(ctx context.Context, uuid uuid.UUID, name string) (*models.Tag, error)
 	GetTagByUUID(ctx context.Context, uuid string) (*models.Tag, error)
 }
 
@@ -19,7 +20,7 @@ type TagAccessor interface {
 var _ TagAccessor = (*DBAccessor)(nil)
 
 // CreateTag creates a new tag in the database
-func (a *DBAccessor) CreateTag(ctx context.Context, uuid, name string) (*models.Tag, error) {
+func (a *DBAccessor) CreateTag(ctx context.Context, uuid uuid.UUID, name string) (*models.Tag, error) {
 	now := time.Now()
 	tagsTable := goqu.T("tags")
 

@@ -4,9 +4,78 @@ package model;
 
 option go_package = "todo-time-tracker/proto/model";
 
+import "google/protobuf/timestamp.proto";
+
+// Account message
+message Account {
+  enum Type {
+    NONE = 0;
+    USER = 1;
+    ORGANIZATION = 2;
+  }
+
+  int64 id = 1;
+  string uuid = 2;
+  Type type = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+// Organization message
+message Organization {
+  int64 id = 1;
+  string uuid = 2;
+  int64 account_uuid = 3;
+  string name = 4;
+}
+
+// User message
+message User {
+  int64 id = 1;
+  string uuid = 2;
+  int64 account_uuid = 3;
+  string name = 4;
+  string email = 5;
+}
+
 // Tag message
 message Tag {
   int64 id = 1;
   string uuid = 2;
-  string name = 3;
+  int64 account_uuid = 3;
+  string name = 4;
+  string description = 5;
+  string color = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// Task message
+message Task {
+  enum Status {
+    NONE = 0;
+    TODO = 1;
+    IN_PROGRESS = 2;
+    DONE = 3;
+    BLOCKED = 4;
+  }
+
+  int64 id = 1;
+  string uuid = 2;
+  int64 account_uuid = 3;
+  string name = 4;
+  string description = 5;
+  Status status = 6;
+  string estimated_duration = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// Session message
+message Session {
+  int64 id = 1;
+  string task_uuid = 2;
+  string user_uuid = 3;
+  google.protobuf.Timestamp starts_at = 4;
+  google.protobuf.Timestamp ends_at = 5; // nullable
 }
