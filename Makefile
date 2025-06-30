@@ -1,4 +1,4 @@
-.PHONY: build build-server build-cli test clean lint fmt install-tools run run-server proto-gen help
+.PHONY: build build-server build-cli test clean lint fmt install-tools run run-server run-cli proto-gen help
 
 # Binary names
 CLI_BINARY_NAME=ttt
@@ -30,6 +30,20 @@ drop-db:
 	@echo "Dropping database..."
 	dropdb $(DATABASE_NAME)
 	dropuser $(DATABASE_USER)
+
+# CLI
+build-cli:
+	@echo "Building $(CLI_BINARY_NAME)..."
+	@mkdir -p bin
+	go build -o $(CLI_BINARY_PATH) ./cmd/cli
+
+run-cli: build-cli
+	@echo "Running $(CLI_BINARY_NAME)..."
+	$(CLI_BINARY_PATH)
+
+# Build both CLI and server
+build: build-cli build-server
+	@echo "Built both CLI and server binaries"
 
 # Server
 build-server:
@@ -111,6 +125,9 @@ install: build
 help:
 	@echo "Available targets:"
 	@echo "  proto-gen              Generate protobuf Go code"
+	@echo "  build                  Build both CLI and server"
+	@echo "  build-cli              Build the CLI application"
+	@echo "  run-cli                Build and run the CLI application"
 	@echo "  build-server           Build the gRPC server (local)"
 	@echo "  run-server             Build and run the server (local)"
 	@echo "  test                   Run tests"
