@@ -16,38 +16,42 @@ message Account {
 
   int64 id = 1;
   string uuid = 2;
-  Type type = 3;
-  google.protobuf.Timestamp created_at = 4;
-  google.protobuf.Timestamp updated_at = 5;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
+  Type type = 5;
 }
 
 // Organization message
 message Organization {
   int64 id = 1;
   string uuid = 2;
-  int64 account_uuid = 3;
-  string name = 4;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
+  int64 account_uuid = 5;
+  string name = 6;
 }
 
 // User message
 message User {
   int64 id = 1;
   string uuid = 2;
-  int64 account_uuid = 3;
-  string name = 4;
-  string email = 5;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
+  int64 account_uuid = 5;
+  string name = 6;
+  string email = 7;
 }
 
 // Tag message
 message Tag {
   int64 id = 1;
   string uuid = 2;
-  int64 account_uuid = 3;
-  string name = 4;
-  string description = 5;
-  string color = 6;
-  google.protobuf.Timestamp created_at = 7;
-  google.protobuf.Timestamp updated_at = 8;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
+  int64 account_uuid = 5;
+  string name = 6;
+  string description = 7;
+  string color = 8;
 }
 
 // Task message
@@ -62,20 +66,22 @@ message Task {
 
   int64 id = 1;
   string uuid = 2;
-  int64 account_uuid = 3;
-  string name = 4;
-  string description = 5;
-  Status status = 6;
-  string estimated_duration = 7;
-  google.protobuf.Timestamp created_at = 8;
-  google.protobuf.Timestamp updated_at = 9;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
+  int64 account_uuid = 5;
+  string name = 6;
+  string description = 7;
+  Status status = 8;
+  string estimated_duration = 9;
 }
 
 // Session message
 message Session {
   int64 id = 1;
-  string task_uuid = 2;
-  string user_uuid = 3;
-  google.protobuf.Timestamp starts_at = 4;
-  google.protobuf.Timestamp ends_at = 5; // nullable
+  google.protobuf.Timestamp created_at = 2;
+  google.protobuf.Timestamp updated_at = 3;
+  int64 task_id = 4;
+  int64 user_id = 5;
+  google.protobuf.Timestamp starts_at = 6;
+  google.protobuf.Timestamp ends_at = 7; // nullable
 }

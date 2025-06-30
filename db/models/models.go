@@ -27,11 +27,11 @@ func (a AccountType) IsValid() bool {
 
 // Account represents a account in the database
 type Account struct {
-	ID        int64       `db:"id"`
-	UUID      uuid.UUID   `db:"uuid"`
-	Type      AccountType `db:"type"`
-	CreatedAt time.Time   `db:"created_at"`
-	UpdatedAt time.Time   `db:"updated_at"`
+	ID        int64       `db:"id" json:"id" goqu:"skipinsert"`
+	UUID      uuid.UUID   `db:"uuid" json:"uuid"`
+	CreatedAt time.Time   `db:"created_at" goqu:"skipinsert"`
+	UpdatedAt time.Time   `db:"updated_at" goqu:"skipinsert"`
+	Type      AccountType `db:"type" json:"type"`
 }
 
 // TableName returns the table name for the Account model
@@ -43,6 +43,8 @@ func (Account) TableName() string {
 type User struct {
 	ID        int64     `db:"id" json:"id" goqu:"skipinsert"`
 	UUID      uuid.UUID `db:"uuid" json:"uuid"`
+	CreatedAt time.Time `db:"created_at" json:"created_at" goqu:"skipinsert"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at" goqu:"skipinsert"`
 	AccountID int64     `db:"account_id" json:"account_id"`
 	Name      string    `db:"name" json:"name"`
 	Email     string    `db:"email" json:"email"`
@@ -58,6 +60,8 @@ func (User) TableName() string {
 type Organization struct {
 	ID        int64     `db:"id" json:"id" goqu:"skipinsert"`
 	UUID      uuid.UUID `db:"uuid" json:"uuid"`
+	CreatedAt time.Time `db:"created_at" json:"created_at" goqu:"skipinsert"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at" goqu:"skipinsert"`
 	AccountID int64     `db:"account_id" json:"account_id"`
 	Name      string    `db:"name" json:"name"`
 }
@@ -71,12 +75,12 @@ func (Organization) TableName() string {
 type Tag struct {
 	ID          int64     `db:"id" json:"id" goqu:"skipinsert"`
 	UUID        uuid.UUID `db:"uuid" json:"uuid"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at" goqu:"skipinsert"`
+	UpdatedAt   time.Time `db:"updated_at" json:"updated_at" goqu:"skipinsert"`
 	AccountID   int64     `db:"account_id" json:"account_id"`
 	Name        string    `db:"name" json:"name"`
 	Description string    `db:"description" json:"description"`
 	Color       string    `db:"color" json:"color"`
-	CreatedAt   time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
 }
 
 // TableName returns the table name for the Tag model
@@ -106,13 +110,13 @@ func (s TaskStatus) IsValid() bool {
 type Task struct {
 	ID                int64          `db:"id" json:"id" goqu:"skipinsert"`
 	UUID              uuid.UUID      `db:"uuid" json:"uuid"`
+	CreatedAt         time.Time      `db:"created_at" json:"created_at" goqu:"skipinsert"`
+	UpdatedAt         time.Time      `db:"updated_at" json:"updated_at" goqu:"skipinsert"`
 	AccountID         int64          `db:"account_id" json:"account_id"`
 	Name              string         `db:"name" json:"name"`
 	Description       string         `db:"description" json:"description"`
 	EstimatedDuration *time.Duration `db:"estimated_duration" json:"estimated_duration"` // nullable
 	Status            TaskStatus     `db:"status" json:"status"`
-	CreatedAt         time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt         time.Time      `db:"updated_at" json:"updated_at"`
 }
 
 // TableName returns the table name for the Task model
@@ -122,12 +126,13 @@ func (Task) TableName() string {
 
 // Session represents a session in the database
 type Session struct {
-	ID       int64      `db:"id" json:"id" goqu:"skipinsert"`
-	UUID     uuid.UUID  `db:"uuid" json:"uuid"`
-	TaskID   int64      `db:"task_id" json:"task_id"`
-	UserID   int64      `db:"user_id" json:"user_id"`
-	StartsAt time.Time  `db:"starts_at" json:"starts_at"`
-	EndsAt   *time.Time `db:"ends_at" json:"ends_at"` // nullable
+	ID        int64      `db:"id" json:"id" goqu:"skipinsert"`
+	CreatedAt time.Time  `db:"created_at" json:"created_at" goqu:"skipinsert"`
+	UpdatedAt time.Time  `db:"updated_at" json:"updated_at" goqu:"skipinsert"`
+	TaskID    int64      `db:"task_id" json:"task_id"`
+	UserID    int64      `db:"user_id" json:"user_id"`
+	StartsAt  time.Time  `db:"starts_at" json:"starts_at"`
+	EndsAt    *time.Time `db:"ends_at" json:"ends_at"` // nullable
 }
 
 // TableName returns the table name for the Session model
@@ -137,9 +142,11 @@ func (Session) TableName() string {
 
 // OrganizationUser represents a organization user in the database
 type OrganizationUser struct {
-	ID             int64 `db:"id" json:"id" goqu:"skipinsert"`
-	UserID         int64 `db:"user_id" json:"user_id"`
-	OrganizationID int64 `db:"organization_id" json:"organization_id"`
+	ID             int64     `db:"id" json:"id" goqu:"skipinsert"`
+	CreatedAt      time.Time `db:"created_at" json:"created_at" goqu:"skipinsert"`
+	UpdatedAt      time.Time `db:"updated_at" json:"updated_at" goqu:"skipinsert"`
+	UserID         int64     `db:"user_id" json:"user_id"`
+	OrganizationID int64     `db:"organization_id" json:"organization_id"`
 }
 
 // TableName returns the table name for the OrganizationUser model
@@ -149,9 +156,11 @@ func (OrganizationUser) TableName() string {
 
 // TaskTag represents a task tag in the database
 type TaskTag struct {
-	ID     int64 `db:"id" json:"id" goqu:"skipinsert"`
-	TaskID int64 `db:"task_id" json:"task_id"`
-	TagID  int64 `db:"tag_id" json:"tag_id"`
+	ID        int64     `db:"id" json:"id" goqu:"skipinsert"`
+	CreatedAt time.Time `db:"created_at" json:"created_at" goqu:"skipinsert"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at" goqu:"skipinsert"`
+	TaskID    int64     `db:"task_id" json:"task_id"`
+	TagID     int64     `db:"tag_id" json:"tag_id"`
 }
 
 func (TaskTag) TableName() string {
@@ -160,9 +169,11 @@ func (TaskTag) TableName() string {
 
 // TaskUser represents a task user in the database
 type TaskUser struct {
-	ID     int64 `db:"id" json:"id" goqu:"skipinsert"`
-	TaskID int64 `db:"task_id" json:"task_id"`
-	UserID int64 `db:"user_id" json:"user_id"`
+	ID        int64     `db:"id" json:"id" goqu:"skipinsert"`
+	CreatedAt time.Time `db:"created_at" json:"created_at" goqu:"skipinsert"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at" goqu:"skipinsert"`
+	TaskID    int64     `db:"task_id" json:"task_id"`
+	UserID    int64     `db:"user_id" json:"user_id"`
 }
 
 func (TaskUser) TableName() string {
