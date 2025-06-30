@@ -66,15 +66,41 @@ CREATE TABLE sessions (
   task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
-
 CREATE INDEX idx_sessions_task_id ON sessions(task_id);
 CREATE INDEX idx_sessions_user_id ON sessions(user_id);
 
 -- Enforce no overlaps for a given user
-CREATE EXTENSION IF NOT EXISTS btree_gist;
 CREATE INDEX idx_sessions_user_id_time_range ON sessions USING gist (user_id, time_range);
-ALTER TABLE sessions ADD CONSTRAINT sessions_user_id_no_overlap
-  EXCLUDE USING gist (
-    user_id WITH =,
-    time_range WITH &&
-  );
+ALTER TABLE sessions
+ADD CONSTRAINT sessions_user_id_no_overlap EXCLUDE USING gist (user_id WITH =, time_range WITH &&);
+
+-- ORGANIZATION USERS
+CREATE TABLE organization_users (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  UNIQUE (user_id, organization_id)
+);
+CREATE INDEX idx_organization_users_organization_id ON organization_users(organization_id);
+CREATE INDEX idx_organization_users_user_id ON organization_users(user_id);
+
+-- TASK USERS
+CREATE TABLE task_users (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  UNIQUE (user_id, task_id)
+);
+CREATE INDEX idx_task_users_task_id ON task_users(task_id);
+CREATE INDEX idx_task_users_user_id ON task_users(user_id);
+
+-- TASK TAGS
+CREATE TABLE task_tags (
+  id SERIAL PRIMARY KEY,
+  task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+  UNIQUE (task_id, tag_id)
+);
+
+CREATE INDEX idx_task_tags_task_id ON task_tags(task_id);
+CREATE INDEX idx_task_tags_tag_id ON task_tags(tag_id);

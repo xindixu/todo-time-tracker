@@ -18,7 +18,7 @@ const (
 )
 
 func main() {
-	log.Println("Starting Todo Time Tracker gRPC server...")
+	log.Println("🔄 Starting Todo Time Tracker gRPC server...")
 
 	// Initialize database
 	dbConnStr := os.Getenv("DATABASE_URL")
@@ -50,7 +50,7 @@ func main() {
 	reflection.Register(s)
 
 	log.Printf("gRPC server listening on port %s", port)
-	log.Println("Server is ready to accept connections...")
+	log.Println("🚀 Server is ready to accept connections...")
 
 	// Start serving
 	if err := s.Serve(lis); err != nil {

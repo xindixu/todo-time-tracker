@@ -70,7 +70,7 @@ func (s *TTTServer) GetTag(ctx context.Context, req *ttt.GetTagReq) (*ttt.GetTag
 	// Convert database model to protobuf model
 	protoTag := &model.Tag{
 		Id:   dbTag.ID,
-		Uuid: dbTag.UUID,
+		Uuid: dbTag.UUID.String(),
 		Name: dbTag.Name,
 	}
 

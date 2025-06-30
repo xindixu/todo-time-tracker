@@ -135,6 +135,18 @@ func (Session) TableName() string {
 	return "sessions"
 }
 
+// OrganizationUser represents a organization user in the database
+type OrganizationUser struct {
+	ID             int64 `db:"id" json:"id" goqu:"skipinsert"`
+	UserID         int64 `db:"user_id" json:"user_id"`
+	OrganizationID int64 `db:"organization_id" json:"organization_id"`
+}
+
+// TableName returns the table name for the OrganizationUser model
+func (OrganizationUser) TableName() string {
+	return "organization_users"
+}
+
 // TaskTag represents a task tag in the database
 type TaskTag struct {
 	ID     int64 `db:"id" json:"id" goqu:"skipinsert"`

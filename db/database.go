@@ -21,7 +21,7 @@ type DBConnection struct {
 
 // InitDatabaseConnection initializes the PostgreSQL database connection
 func InitDatabaseConnection(dbConnStr string) (*DBConnection, error) {
-	log.Println("🔄 Initializing PostgreSQL database...")
+	log.Println("Initializing PostgreSQL database...")
 
 	// Open PostgreSQL database
 	db, err := sqlx.Connect("postgres", dbConnStr)
@@ -47,16 +47,8 @@ func InitDatabaseConnection(dbConnStr string) (*DBConnection, error) {
 		Builder: builder,
 	}
 
-	// Run migrations
-	if err := dbConnection.Migrate(); err != nil {
-		err := db.Close()
-		if err != nil {
-			log.Println("Error closing database connection:", err)
-		}
-		return nil, err
-	}
+	log.Println("Database connection initialized successfully")
 
-	log.Println("✅ Database initialized successfully")
 	return dbConnection, nil
 }
 
@@ -105,7 +97,7 @@ func (d *DBConnection) Migrate() error {
 	if err == migrate.ErrNoChange {
 		log.Println("No new migrations to apply")
 	} else {
-		log.Println("✅ Migrations applied successfully")
+		log.Println("Migrations applied successfully")
 	}
 
 	return nil

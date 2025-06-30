@@ -13,20 +13,26 @@ proto-gen:
 
 
 # Database
+DATABASE_SUPERUSER=postgres
 DATABASE_USER=tttuser
 DATABASE_NAME=tttdb
 DATABASE_URL=postgres://$(DATABASE_USER)@localhost:5432/$(DATABASE_NAME)?sslmode=disable
 
-create-db:
+db-create:
 	@echo "Creating database..."
 	createdb $(DATABASE_NAME)
 	createuser $(DATABASE_USER)
+	psql -h localhost -p 5432 -U $(DATABASE_SUPERUSER) -d $(DATABASE_NAME) -c "CREATE EXTENSION IF NOT EXISTS btree_gist;"
 
-connect-db:
+db-connect:
 	@echo "Connecting to database..."
 	psql -h localhost -p 5432 -U $(DATABASE_USER) -d $(DATABASE_NAME)
 
-drop-db:
+db-migrate:
+	@echo "Migrating database..."
+	DATABASE_URL=$(DATABASE_URL) go run cmd/db/main.go
+
+db-drop:
 	@echo "Dropping database..."
 	dropdb $(DATABASE_NAME)
 	dropuser $(DATABASE_USER)
