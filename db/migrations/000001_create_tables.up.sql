@@ -1,4 +1,7 @@
 
+-- Enable required extensions
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
 -- ACCOUNTS
 CREATE TYPE account_type AS ENUM ('USER', 'ORGANIZATION');
 CREATE TABLE IF NOT EXISTS accounts (

@@ -1,14 +1,17 @@
 package db
 
 import (
+	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 
-	"github.com/golang-migrate/migrate/v4"
+	migrate "github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
@@ -17,6 +20,29 @@ import (
 type DBConnection struct {
 	DB      *sqlx.DB
 	Builder *goqu.Database
+}
+
+// findProjectRoot finds the project root directory by looking for go.mod file
+func findProjectRoot() (string, error) {
+	// Start from current working directory
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	// Walk up the directory tree looking for go.mod
+	for {
+		if _, err := os.Stat(filepath.Join(currentDir, "go.mod")); err == nil {
+			return currentDir, nil
+		}
+
+		parent := filepath.Dir(currentDir)
+		if parent == currentDir {
+			// Reached root directory without finding go.mod
+			return "", fmt.Errorf("could not find go.mod file in any parent directory")
+		}
+		currentDir = parent
+	}
 }
 
 // InitDatabaseConnection initializes the PostgreSQL database connection
@@ -62,8 +88,15 @@ func (d *DBConnection) Migrate() error {
 		return err
 	}
 
-	// Use absolute path for migrations to avoid path resolution issues
-	migrationPath := "file://./db/migrations"
+	// Find project root and use absolute path for migrations
+	projectRoot, err := findProjectRoot()
+	if err != nil {
+		log.Printf("Failed to find project root: %v", err)
+		return err
+	}
+
+	migrationsPath := filepath.Join(projectRoot, "db", "migrations")
+	migrationPath := "file://" + migrationsPath
 	m, err := migrate.NewWithDatabaseInstance(
 		migrationPath,
 		"postgres", driver,

@@ -2,6 +2,8 @@ package accessors
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"todo-time-tracker/db/models"
 
@@ -19,6 +21,9 @@ var _ UserAccessor = (*DBAccessor)(nil)
 
 // CreateUser creates a new user in the database
 func (a *DBAccessor) CreateUser(ctx context.Context, uuid uuid.UUID, name string, email string, password string) (*models.User, error) {
+	if name == "" || email == "" || password == "" {
+		return nil, errors.New("invalid user data")
+	}
 
 	tx, err := a.Builder.Begin()
 	if err != nil {
@@ -57,7 +62,7 @@ func (a *DBAccessor) CreateUser(ctx context.Context, uuid uuid.UUID, name string
 
 	insertUser := tx.Insert(usersTable).
 		Rows(user).
-		Returning("id")
+		Returning("id", "created_at", "updated_at")
 
 	query, args, err = insertUser.ToSQL()
 	if err != nil {
@@ -65,7 +70,9 @@ func (a *DBAccessor) CreateUser(ctx context.Context, uuid uuid.UUID, name string
 	}
 
 	var insertedUserID int64
-	err = tx.QueryRowContext(ctx, query, args...).Scan(&insertedUserID)
+	var createdAt time.Time
+	var updatedAt time.Time
+	err = tx.QueryRowContext(ctx, query, args...).Scan(&insertedUserID, &createdAt, &updatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -77,5 +84,7 @@ func (a *DBAccessor) CreateUser(ctx context.Context, uuid uuid.UUID, name string
 
 	// Set the ID on the user and return it
 	user.ID = insertedUserID
+	user.CreatedAt = createdAt
+	user.UpdatedAt = updatedAt
 	return user, nil
 }
