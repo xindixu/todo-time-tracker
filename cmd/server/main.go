@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"todo-time-tracker/db"
-	"todo-time-tracker/proto/ttt"
+	"todo-time-tracker/proto/go/ttt"
 	"todo-time-tracker/server"
 )
 

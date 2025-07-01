@@ -9,8 +9,8 @@ SERVER_BINARY_PATH=./bin/$(SERVER_BINARY_NAME)
 # Generate protobuf code
 proto-gen:
 	@echo "Generating protobuf code..."
-    protoc --go_out=. --go-grpc_out=. proto/*.proto
-
+	mkdir -p proto/go
+	protoc --go_out=. --go-grpc_out=. proto/*.proto
 
 # Database
 DATABASE_SUPERUSER=postgres
@@ -52,38 +52,35 @@ build: build-cli build-server
 	@echo "Built both CLI and server binaries"
 
 # Server
-build-server:
+server-build:
 	@echo "Building $(SERVER_BINARY_NAME)..."
 	@mkdir -p bin
 	go build -o $(SERVER_BINARY_PATH) ./cmd/server
 
-run-server: build-server
+server-run: server-build
 	@echo "Running $(SERVER_BINARY_NAME)..."
 	DATABASE_URL=$(DATABASE_URL) $(SERVER_BINARY_PATH)
 
 
 # Docker
-# run-server-docker:
-# 	@echo "Building and running server with Docker..."
-# 	cd cmd/server && docker compose up --build
+server-run-docker:
+	@echo "Building and running server with Docker..."
+	cd cmd/server && docker compose up --build
 
-# stop-server-docker:
-# 	@echo "Stopping Docker containers..."
-# 	cd cmd/server && docker compose down
+server-stop-docker:
+	@echo "Stopping Docker containers..."
+	cd cmd/server && docker compose down
 
-# clean-docker:
-# 	@echo "Cleaning Docker containers and images..."
-# 	cd cmd/server && docker compose down --volumes --remove-orphans
-# 	docker system prune -f
+server-clean-docker:
+	@echo "Cleaning Docker containers and images..."
+	cd cmd/server && docker compose down --volumes --remove-orphans
+	docker system prune -f
 
-# logs-docker:
-# 	@echo "Showing Docker logs..."
-# 	cd cmd/server && docker compose logs -f
+server-logs-docker:
+	@echo "Showing Docker logs..."
+	cd cmd/server && docker compose logs -f
 
-# restart-server-docker: stop-server-docker run-server-docker
-
-
-
+server-restart-docker: server-stop-docker server-run-docker
 
 # # Run the CLI (you'll need to specify arguments)
 # run: build-cli

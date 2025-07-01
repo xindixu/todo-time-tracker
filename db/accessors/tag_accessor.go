@@ -2,7 +2,6 @@ package accessors
 
 import (
 	"context"
-	"time"
 
 	"todo-time-tracker/db/models"
 
@@ -21,14 +20,11 @@ var _ TagAccessor = (*DBAccessor)(nil)
 
 // CreateTag creates a new tag in the database
 func (a *DBAccessor) CreateTag(ctx context.Context, uuid uuid.UUID, name string) (*models.Tag, error) {
-	now := time.Now()
 	tagsTable := goqu.T("tags")
 
 	tag := &models.Tag{
-		UUID:      uuid,
-		Name:      name,
-		CreatedAt: now,
-		UpdatedAt: now,
+		UUID: uuid,
+		Name: name,
 	}
 
 	// Build insert query with RETURNING clause to get the inserted ID

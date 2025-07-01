@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	contextpb "todo-time-tracker/proto/context"
-	"todo-time-tracker/proto/ttt"
+	contextpb "todo-time-tracker/proto/go/context"
+	"todo-time-tracker/proto/go/ttt"
 )
 
 // CreateTag creates a new tag via gRPC

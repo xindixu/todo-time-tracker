@@ -12,8 +12,8 @@ import (
 
 	"todo-time-tracker/db"
 	"todo-time-tracker/db/accessors"
-	contextpb "todo-time-tracker/proto/context"
-	"todo-time-tracker/proto/ttt"
+	contextpb "todo-time-tracker/proto/go/context"
+	"todo-time-tracker/proto/go/ttt"
 )
 
 // TTTServer implements the TTTService gRPC service

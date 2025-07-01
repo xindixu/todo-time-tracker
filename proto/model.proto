@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package model;
 
-option go_package = "todo-time-tracker/proto/model";
+option go_package = "proto/go/model";
 
 import "google/protobuf/timestamp.proto";
 
@@ -80,8 +80,8 @@ message Session {
   int64 id = 1;
   google.protobuf.Timestamp created_at = 2;
   google.protobuf.Timestamp updated_at = 3;
-  int64 task_id = 4;
-  int64 user_id = 5;
+  string task_uuid = 4;
+  string user_uuid = 5;
   google.protobuf.Timestamp starts_at = 6;
   google.protobuf.Timestamp ends_at = 7; // nullable
 }

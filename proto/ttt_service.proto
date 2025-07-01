@@ -2,13 +2,16 @@ syntax = "proto3";
 
 package ttt;
 
-option go_package = "todo-time-tracker/proto/ttt";
+option go_package = "proto/go/ttt";
 
 import "proto/model.proto";
 import "proto/context.proto";
 
 // TTTService defines the main gRPC service for Todo Time Tracker
 service TTTService {
+  // User operations
+  rpc CreateUser(CreateUserReq) returns (CreateUserResp);
+
   // Tag operations
   rpc GetTag(GetTagReq) returns (GetTagResp);
   rpc ListTags(ListTagsReq) returns (ListTagsResp);
@@ -17,7 +20,20 @@ service TTTService {
   rpc DeleteTag(DeleteTagReq) returns (DeleteTagResp);
 }
 
-// Request/Response messages for Tag operations
+
+// -- User operations --
+message CreateUserReq {
+  context.Context context = 1;
+  string name = 2;
+  string email = 3;
+  string password = 4;
+}
+
+message CreateUserResp {
+  model.User user = 1;
+}
+
+// -- Tag operations --
 
 message GetTagReq {
   context.Context context = 1;

@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"todo-time-tracker/proto/model"
-	"todo-time-tracker/proto/ttt"
+	"todo-time-tracker/proto/go/model"
+	"todo-time-tracker/proto/go/ttt"
 )
 
 // CreateTag creates a new tag

@@ -72,7 +72,7 @@ const file_proto_context_proto_rawDesc = "" +
 	"\n" +
 	"\x13proto/context.proto\x12\acontext\"%\n" +
 	"\aContext\x12\x1a\n" +
-	"\busername\x18\x01 \x01(\tR\busernameB!Z\x1ftodo-time-tracker/proto/contextb\x06proto3"
+	"\busername\x18\x01 \x01(\tR\busernameB\x12Z\x10proto/go/contextb\x06proto3"
 
 var (
 	file_proto_context_proto_rawDescOnce sync.Once

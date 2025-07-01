@@ -1,0 +1,62 @@
+package server
+
+import (
+	"context"
+	"log"
+
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"todo-time-tracker/proto/go/model"
+	"todo-time-tracker/proto/go/ttt"
+)
+
+func (s *TTTServer) CreateUser(ctx context.Context, req *ttt.CreateUserReq) (*ttt.CreateUserResp, error) {
+	username := getUsername(ctx)
+	log.Printf("CreateUser: Processing request for user: %s, name: %s", username, req.Name)
+
+	// Validate input
+	if req.Name == "" {
+		return nil, status.Error(codes.InvalidArgument, "name cannot be empty")
+	}
+
+	if req.Email == "" {
+		return nil, status.Error(codes.InvalidArgument, "email cannot be empty")
+	}
+
+	if req.Password == "" {
+		return nil, status.Error(codes.InvalidArgument, "password cannot be empty")
+	}
+
+	// Generate UUID for the new user
+	uuid := uuid.New()
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("CreateUser: Failed to hash password: %v", err)
+		return nil, status.Error(codes.Internal, "failed to hash password")
+	}
+
+	// Create user in database
+	dbUser, err := s.accessor.CreateUser(ctx, uuid, req.Name, req.Email, string(hashedPassword))
+	if err != nil {
+		log.Printf("CreateUser: Database error: %v", err)
+		return nil, status.Error(codes.Internal, "failed to create user")
+	}
+
+	// Convert database model to protobuf model
+	protoUser := &model.User{
+		Id:    dbUser.ID,
+		Uuid:  dbUser.UUID.String(),
+		Name:  dbUser.Name,
+		Email: dbUser.Email,
+	}
+
+	log.Printf("CreateUser: Successfully created user: %s", protoUser.Name)
+	return &ttt.CreateUserResp{
+		User: protoUser,
+	}, nil
+}

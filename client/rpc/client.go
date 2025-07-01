@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"todo-time-tracker/proto/ttt"
+	"todo-time-tracker/proto/go/ttt"
 )
 
 const (

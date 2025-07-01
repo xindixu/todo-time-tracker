@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TTTService_GetTag_FullMethodName    = "/ttt.TTTService/GetTag"
-	TTTService_ListTags_FullMethodName  = "/ttt.TTTService/ListTags"
-	TTTService_CreateTag_FullMethodName = "/ttt.TTTService/CreateTag"
-	TTTService_UpdateTag_FullMethodName = "/ttt.TTTService/UpdateTag"
-	TTTService_DeleteTag_FullMethodName = "/ttt.TTTService/DeleteTag"
+	TTTService_CreateUser_FullMethodName = "/ttt.TTTService/CreateUser"
+	TTTService_GetTag_FullMethodName     = "/ttt.TTTService/GetTag"
+	TTTService_ListTags_FullMethodName   = "/ttt.TTTService/ListTags"
+	TTTService_CreateTag_FullMethodName  = "/ttt.TTTService/CreateTag"
+	TTTService_UpdateTag_FullMethodName  = "/ttt.TTTService/UpdateTag"
+	TTTService_DeleteTag_FullMethodName  = "/ttt.TTTService/DeleteTag"
 )
 
 // TTTServiceClient is the client API for TTTService service.
@@ -32,6 +33,8 @@ const (
 //
 // TTTService defines the main gRPC service for Todo Time Tracker
 type TTTServiceClient interface {
+	// User operations
+	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*CreateUserResp, error)
 	// Tag operations
 	GetTag(ctx context.Context, in *GetTagReq, opts ...grpc.CallOption) (*GetTagResp, error)
 	ListTags(ctx context.Context, in *ListTagsReq, opts ...grpc.CallOption) (*ListTagsResp, error)
@@ -46,6 +49,16 @@ type tTTServiceClient struct {
 
 func NewTTTServiceClient(cc grpc.ClientConnInterface) TTTServiceClient {
 	return &tTTServiceClient{cc}
+}
+
+func (c *tTTServiceClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*CreateUserResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateUserResp)
+	err := c.cc.Invoke(ctx, TTTService_CreateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *tTTServiceClient) GetTag(ctx context.Context, in *GetTagReq, opts ...grpc.CallOption) (*GetTagResp, error) {
@@ -104,6 +117,8 @@ func (c *tTTServiceClient) DeleteTag(ctx context.Context, in *DeleteTagReq, opts
 //
 // TTTService defines the main gRPC service for Todo Time Tracker
 type TTTServiceServer interface {
+	// User operations
+	CreateUser(context.Context, *CreateUserReq) (*CreateUserResp, error)
 	// Tag operations
 	GetTag(context.Context, *GetTagReq) (*GetTagResp, error)
 	ListTags(context.Context, *ListTagsReq) (*ListTagsResp, error)
@@ -120,6 +135,9 @@ type TTTServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedTTTServiceServer struct{}
 
+func (UnimplementedTTTServiceServer) CreateUser(context.Context, *CreateUserReq) (*CreateUserResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
+}
 func (UnimplementedTTTServiceServer) GetTag(context.Context, *GetTagReq) (*GetTagResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTag not implemented")
 }
@@ -154,6 +172,24 @@ func RegisterTTTServiceServer(s grpc.ServiceRegistrar, srv TTTServiceServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&TTTService_ServiceDesc, srv)
+}
+
+func _TTTService_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TTTServiceServer).CreateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TTTService_CreateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TTTServiceServer).CreateUser(ctx, req.(*CreateUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _TTTService_GetTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -253,6 +289,10 @@ var TTTService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "ttt.TTTService",
 	HandlerType: (*TTTServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateUser",
+			Handler:    _TTTService_CreateUser_Handler,
+		},
 		{
 			MethodName: "GetTag",
 			Handler:    _TTTService_GetTag_Handler,
