@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	utils "todo-time-tracker/go-utils"
 	"todo-time-tracker/proto/go/model"
 	"todo-time-tracker/proto/go/ttt"
 )
@@ -36,15 +37,13 @@ func (s *TTTServer) CreateUser(ctx context.Context, req *ttt.CreateUserReq) (*tt
 	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Printf("CreateUser: Failed to hash password: %v", err)
-		return nil, status.Error(codes.Internal, "failed to hash password")
+		return nil, status.Error(codes.Internal, utils.WrapAsStr(err, "failed to hash password"))
 	}
 
 	// Create user in database
 	dbUser, err := s.accessor.CreateUser(ctx, uuid, req.Name, req.Email, string(hashedPassword))
 	if err != nil {
-		log.Printf("CreateUser: Database error: %v", err)
-		return nil, status.Error(codes.Internal, "failed to create user")
+		return nil, status.Error(codes.Internal, utils.WrapAsStr(err, "failed to create user"))
 	}
 
 	// Convert database model to protobuf model

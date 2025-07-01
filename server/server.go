@@ -12,6 +12,7 @@ import (
 
 	"todo-time-tracker/db"
 	"todo-time-tracker/db/accessors"
+	utils "todo-time-tracker/go-utils"
 	contextpb "todo-time-tracker/proto/go/context"
 	"todo-time-tracker/proto/go/ttt"
 )
@@ -31,10 +32,11 @@ func NewTTTServer(db *db.DBConnection) *TTTServer {
 	}
 }
 
-// extractUsernameFromRequest uses reflection to extract username from any request with a Context field
-func extractUsernameFromRequest(req interface{}) string {
+// extractInfoFromRequest uses reflection to extract user info from any request with a Context field
+// returns user uuid, user name, and token
+func extractInfoFromRequest(req interface{}) (string, string, string) {
 	if req == nil {
-		return ""
+		return "", "", ""
 	}
 
 	// Use reflection to get the Context field
@@ -46,15 +48,29 @@ func extractUsernameFromRequest(req interface{}) string {
 	// Look for a field named "Context"
 	contextField := reqValue.FieldByName("Context")
 	if !contextField.IsValid() || contextField.IsNil() {
-		return ""
+		return "", "", ""
 	}
 
 	// Extract the context as *contextpb.Context
 	if contextValue, ok := contextField.Interface().(*contextpb.Context); ok && contextValue != nil {
-		return contextValue.Username
+		return contextValue.UserUuid, contextValue.UserName, contextValue.Token
 	}
 
-	return ""
+	return "", "", ""
+}
+
+func populateContext(ctx context.Context, userUuid, userName, token string) context.Context {
+
+	// Add username to the gRPC context for downstream use
+	ctx = context.WithValue(ctx, utils.ContextKeyUserID, userUuid)
+	ctx = context.WithValue(ctx, utils.ContextKeyToken, token)
+
+	// TODO: find account id from user uuid
+	// validate token, user uuid, user name
+
+	ctx = context.WithValue(ctx, utils.ContextKeyAccountID, userUuid)
+
+	return ctx
 }
 
 // RequestInterceptor is a unary server interceptor that logs requests and updates context
@@ -63,20 +79,20 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 
 	// Extract request details for logging
 	methodName := info.FullMethod
-	username := extractUsernameFromRequest(req)
+	userUuid, userName, token := extractInfoFromRequest(req)
 
 	// Log incoming request
-	log.Printf("[REQUEST] Method: %s, User: %s, Time: %s", methodName, username, startTime.Format(time.RFC3339))
+	log.Printf("[REQUEST] Method: %s, User: %s, Time: %s", methodName, userName, startTime.Format(time.RFC3339))
 
 	// Validate that username is provided for all requests
-	if username == "" {
-		log.Printf("[ERROR] Request rejected - missing username in context for method: %s", methodName)
-		return nil, status.Error(codes.Unauthenticated, "username is required in context")
+	if userUuid == "" || userName == "" || token == "" {
+		log.Printf("[ERROR] Request rejected - missing user info in context for method: %s", methodName)
+		return nil, status.Error(codes.Unauthenticated, "user info is required in context")
 	}
 
-	// Add username to the gRPC context for downstream use
-	ctx = context.WithValue(ctx, "username", username)
-	ctx = context.WithValue(ctx, "request_start_time", startTime)
+	// Add user info to the gRPC context for downstream use
+	ctx = populateContext(ctx, userUuid, userName, token)
+	ctx = context.WithValue(ctx, utils.ContextKeyRequestTime, startTime)
 
 	// Call the actual handler
 	resp, err := handler(ctx, req)
@@ -87,10 +103,10 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 	// Log response
 	if err != nil {
 		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: ERROR, Error: %v",
-			methodName, username, duration, err)
+			methodName, userName, duration, err)
 	} else {
 		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: SUCCESS",
-			methodName, username, duration)
+			methodName, userName, duration)
 	}
 
 	return resp, err

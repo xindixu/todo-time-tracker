@@ -24,7 +24,9 @@ const (
 // Context message
 type Context struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	UserUuid      string                 `protobuf:"bytes,1,opt,name=user_uuid,json=userUuid,proto3" json:"user_uuid,omitempty"`
+	UserName      string                 `protobuf:"bytes,2,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
+	Token         string                 `protobuf:"bytes,3,opt,name=token,proto3" json:"token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -59,9 +61,23 @@ func (*Context) Descriptor() ([]byte, []int) {
 	return file_proto_context_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Context) GetUsername() string {
+func (x *Context) GetUserUuid() string {
 	if x != nil {
-		return x.Username
+		return x.UserUuid
+	}
+	return ""
+}
+
+func (x *Context) GetUserName() string {
+	if x != nil {
+		return x.UserName
+	}
+	return ""
+}
+
+func (x *Context) GetToken() string {
+	if x != nil {
+		return x.Token
 	}
 	return ""
 }
@@ -70,9 +86,11 @@ var File_proto_context_proto protoreflect.FileDescriptor
 
 const file_proto_context_proto_rawDesc = "" +
 	"\n" +
-	"\x13proto/context.proto\x12\acontext\"%\n" +
-	"\aContext\x12\x1a\n" +
-	"\busername\x18\x01 \x01(\tR\busernameB\x12Z\x10proto/go/contextb\x06proto3"
+	"\x13proto/context.proto\x12\acontext\"Y\n" +
+	"\aContext\x12\x1b\n" +
+	"\tuser_uuid\x18\x01 \x01(\tR\buserUuid\x12\x1b\n" +
+	"\tuser_name\x18\x02 \x01(\tR\buserName\x12\x14\n" +
+	"\x05token\x18\x03 \x01(\tR\x05tokenB\x12Z\x10proto/go/contextb\x06proto3"
 
 var (
 	file_proto_context_proto_rawDescOnce sync.Once

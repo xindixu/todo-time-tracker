@@ -6,5 +6,7 @@ option go_package = "proto/go/context";
 
 // Context message
 message Context {
-  string username = 1;
+  string user_uuid = 1;
+  string user_name = 2;
+  string token = 3;
 }

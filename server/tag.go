@@ -8,7 +8,9 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
+	utils "todo-time-tracker/go-utils"
 	"todo-time-tracker/proto/go/model"
 	"todo-time-tracker/proto/go/ttt"
 )
@@ -29,15 +31,16 @@ func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.
 	// Create tag in database
 	dbTag, err := s.accessor.CreateTag(ctx, uuid, req.Name)
 	if err != nil {
-		log.Printf("CreateTag: Database error: %v", err)
-		return nil, status.Error(codes.Internal, "failed to create tag")
+		return nil, status.Error(codes.Internal, utils.WrapAsStr(err, "failed to create tag"))
 	}
 
 	// Convert database model to protobuf model
 	protoTag := &model.Tag{
-		Id:   dbTag.ID,
-		Uuid: dbTag.UUID.String(),
-		Name: dbTag.Name,
+		Id:        dbTag.ID,
+		Uuid:      dbTag.UUID.String(),
+		Name:      dbTag.Name,
+		CreatedAt: timestamppb.New(dbTag.CreatedAt),
+		UpdatedAt: timestamppb.New(dbTag.UpdatedAt),
 	}
 
 	log.Printf("CreateTag: Successfully created tag: %s (UUID: %s) by user: %s", protoTag.Name, protoTag.Uuid, username)
@@ -63,15 +66,16 @@ func (s *TTTServer) GetTag(ctx context.Context, req *ttt.GetTagReq) (*ttt.GetTag
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.NotFound, "tag not found")
 		}
-		log.Printf("GetTag: Database error: %v", err)
-		return nil, status.Error(codes.Internal, "failed to get tag")
+		return nil, status.Error(codes.Internal, utils.WrapAsStr(err, "failed to get tag"))
 	}
 
 	// Convert database model to protobuf model
 	protoTag := &model.Tag{
-		Id:   dbTag.ID,
-		Uuid: dbTag.UUID.String(),
-		Name: dbTag.Name,
+		Id:        dbTag.ID,
+		Uuid:      dbTag.UUID.String(),
+		Name:      dbTag.Name,
+		CreatedAt: timestamppb.New(dbTag.CreatedAt),
+		UpdatedAt: timestamppb.New(dbTag.UpdatedAt),
 	}
 
 	log.Printf("GetTag: Successfully retrieved tag: %s (UUID: %s) for user: %s", protoTag.Name, protoTag.Uuid, username)
