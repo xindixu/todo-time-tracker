@@ -4,6 +4,7 @@ package model;
 
 option go_package = "proto/go/model";
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
 // Account message
@@ -72,7 +73,7 @@ message Task {
   string name = 6;
   string description = 7;
   Status status = 8;
-  string estimated_duration = 9;
+  google.protobuf.Duration estimated_duration = 9;
 }
 
 // Session message

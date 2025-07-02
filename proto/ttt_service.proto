@@ -7,6 +7,8 @@ option go_package = "proto/go/ttt";
 import "proto/model.proto";
 import "proto/context.proto";
 
+import "google/protobuf/duration.proto";
+
 // TTTService defines the main gRPC service for Todo Time Tracker
 service TTTService {
   // User operations
@@ -18,6 +20,10 @@ service TTTService {
   rpc CreateTag(CreateTagReq) returns (CreateTagResp);
   rpc UpdateTag(UpdateTagReq) returns (UpdateTagResp);
   rpc DeleteTag(DeleteTagReq) returns (DeleteTagResp);
+
+  // Task operations
+  rpc CreateTask(CreateTaskReq) returns (CreateTaskResp);
+  rpc GetTask(GetTaskReq) returns (GetTaskResp);
 }
 
 
@@ -79,3 +85,27 @@ message DeleteTagReq {
 
 message DeleteTagResp {
 }
+
+// -- Task operations --
+
+message CreateTaskReq {
+  context.Context context = 1;
+  string name = 2;
+  string description = 3;
+  model.Task.Status status = 4;
+  google.protobuf.Duration estimated_duration = 5;
+}
+
+message CreateTaskResp {
+  model.Task task = 1;
+}
+
+message GetTaskReq {
+  context.Context context = 1;
+  string uuid = 2;
+}
+
+message GetTaskResp {
+  model.Task task = 1;
+}
+

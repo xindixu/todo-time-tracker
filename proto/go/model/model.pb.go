@@ -9,6 +9,7 @@ package model
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -493,7 +494,7 @@ type Task struct {
 	Name              string                 `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
 	Description       string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
 	Status            Task_Status            `protobuf:"varint,8,opt,name=status,proto3,enum=model.Task_Status" json:"status,omitempty"`
-	EstimatedDuration string                 `protobuf:"bytes,9,opt,name=estimated_duration,json=estimatedDuration,proto3" json:"estimated_duration,omitempty"`
+	EstimatedDuration *durationpb.Duration   `protobuf:"bytes,9,opt,name=estimated_duration,json=estimatedDuration,proto3" json:"estimated_duration,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -584,11 +585,11 @@ func (x *Task) GetStatus() Task_Status {
 	return Task_NONE
 }
 
-func (x *Task) GetEstimatedDuration() string {
+func (x *Task) GetEstimatedDuration() *durationpb.Duration {
 	if x != nil {
 		return x.EstimatedDuration
 	}
-	return ""
+	return nil
 }
 
 // Session message
@@ -688,7 +689,7 @@ var File_proto_model_proto protoreflect.FileDescriptor
 
 const file_proto_model_proto_rawDesc = "" +
 	"\n" +
-	"\x11proto/model.proto\x12\x05model\x1a\x1fgoogle/protobuf/timestamp.proto\"\xfa\x01\n" +
+	"\x11proto/model.proto\x12\x05model\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xfa\x01\n" +
 	"\aAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04uuid\x18\x02 \x01(\tR\x04uuid\x129\n" +
@@ -730,7 +731,7 @@ const file_proto_model_proto_rawDesc = "" +
 	"\faccount_uuid\x18\x05 \x01(\x03R\vaccountUuid\x12\x12\n" +
 	"\x04name\x18\x06 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\a \x01(\tR\vdescription\x12\x14\n" +
-	"\x05color\x18\b \x01(\tR\x05color\"\x9a\x03\n" +
+	"\x05color\x18\b \x01(\tR\x05color\"\xb5\x03\n" +
 	"\x04Task\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04uuid\x18\x02 \x01(\tR\x04uuid\x129\n" +
@@ -741,8 +742,8 @@ const file_proto_model_proto_rawDesc = "" +
 	"\faccount_uuid\x18\x05 \x01(\x03R\vaccountUuid\x12\x12\n" +
 	"\x04name\x18\x06 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\a \x01(\tR\vdescription\x12*\n" +
-	"\x06status\x18\b \x01(\x0e2\x12.model.Task.StatusR\x06status\x12-\n" +
-	"\x12estimated_duration\x18\t \x01(\tR\x11estimatedDuration\"D\n" +
+	"\x06status\x18\b \x01(\x0e2\x12.model.Task.StatusR\x06status\x12H\n" +
+	"\x12estimated_duration\x18\t \x01(\v2\x19.google.protobuf.DurationR\x11estimatedDuration\"D\n" +
 	"\x06Status\x12\b\n" +
 	"\x04NONE\x10\x00\x12\b\n" +
 	"\x04TODO\x10\x01\x12\x0f\n" +
@@ -784,6 +785,7 @@ var file_proto_model_proto_goTypes = []any{
 	(*Task)(nil),                  // 6: model.Task
 	(*Session)(nil),               // 7: model.Session
 	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 9: google.protobuf.Duration
 }
 var file_proto_model_proto_depIdxs = []int32{
 	8,  // 0: model.Account.created_at:type_name -> google.protobuf.Timestamp
@@ -798,15 +800,16 @@ var file_proto_model_proto_depIdxs = []int32{
 	8,  // 9: model.Task.created_at:type_name -> google.protobuf.Timestamp
 	8,  // 10: model.Task.updated_at:type_name -> google.protobuf.Timestamp
 	1,  // 11: model.Task.status:type_name -> model.Task.Status
-	8,  // 12: model.Session.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 13: model.Session.updated_at:type_name -> google.protobuf.Timestamp
-	8,  // 14: model.Session.starts_at:type_name -> google.protobuf.Timestamp
-	8,  // 15: model.Session.ends_at:type_name -> google.protobuf.Timestamp
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	9,  // 12: model.Task.estimated_duration:type_name -> google.protobuf.Duration
+	8,  // 13: model.Session.created_at:type_name -> google.protobuf.Timestamp
+	8,  // 14: model.Session.updated_at:type_name -> google.protobuf.Timestamp
+	8,  // 15: model.Session.starts_at:type_name -> google.protobuf.Timestamp
+	8,  // 16: model.Session.ends_at:type_name -> google.protobuf.Timestamp
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_proto_model_proto_init() }

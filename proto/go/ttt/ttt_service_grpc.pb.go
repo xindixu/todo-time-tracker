@@ -25,6 +25,8 @@ const (
 	TTTService_CreateTag_FullMethodName  = "/ttt.TTTService/CreateTag"
 	TTTService_UpdateTag_FullMethodName  = "/ttt.TTTService/UpdateTag"
 	TTTService_DeleteTag_FullMethodName  = "/ttt.TTTService/DeleteTag"
+	TTTService_CreateTask_FullMethodName = "/ttt.TTTService/CreateTask"
+	TTTService_GetTask_FullMethodName    = "/ttt.TTTService/GetTask"
 )
 
 // TTTServiceClient is the client API for TTTService service.
@@ -41,6 +43,9 @@ type TTTServiceClient interface {
 	CreateTag(ctx context.Context, in *CreateTagReq, opts ...grpc.CallOption) (*CreateTagResp, error)
 	UpdateTag(ctx context.Context, in *UpdateTagReq, opts ...grpc.CallOption) (*UpdateTagResp, error)
 	DeleteTag(ctx context.Context, in *DeleteTagReq, opts ...grpc.CallOption) (*DeleteTagResp, error)
+	// Task operations
+	CreateTask(ctx context.Context, in *CreateTaskReq, opts ...grpc.CallOption) (*CreateTaskResp, error)
+	GetTask(ctx context.Context, in *GetTaskReq, opts ...grpc.CallOption) (*GetTaskResp, error)
 }
 
 type tTTServiceClient struct {
@@ -111,6 +116,26 @@ func (c *tTTServiceClient) DeleteTag(ctx context.Context, in *DeleteTagReq, opts
 	return out, nil
 }
 
+func (c *tTTServiceClient) CreateTask(ctx context.Context, in *CreateTaskReq, opts ...grpc.CallOption) (*CreateTaskResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateTaskResp)
+	err := c.cc.Invoke(ctx, TTTService_CreateTask_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tTTServiceClient) GetTask(ctx context.Context, in *GetTaskReq, opts ...grpc.CallOption) (*GetTaskResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTaskResp)
+	err := c.cc.Invoke(ctx, TTTService_GetTask_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TTTServiceServer is the server API for TTTService service.
 // All implementations must embed UnimplementedTTTServiceServer
 // for forward compatibility.
@@ -125,6 +150,9 @@ type TTTServiceServer interface {
 	CreateTag(context.Context, *CreateTagReq) (*CreateTagResp, error)
 	UpdateTag(context.Context, *UpdateTagReq) (*UpdateTagResp, error)
 	DeleteTag(context.Context, *DeleteTagReq) (*DeleteTagResp, error)
+	// Task operations
+	CreateTask(context.Context, *CreateTaskReq) (*CreateTaskResp, error)
+	GetTask(context.Context, *GetTaskReq) (*GetTaskResp, error)
 	mustEmbedUnimplementedTTTServiceServer()
 }
 
@@ -152,6 +180,12 @@ func (UnimplementedTTTServiceServer) UpdateTag(context.Context, *UpdateTagReq) (
 }
 func (UnimplementedTTTServiceServer) DeleteTag(context.Context, *DeleteTagReq) (*DeleteTagResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTag not implemented")
+}
+func (UnimplementedTTTServiceServer) CreateTask(context.Context, *CreateTaskReq) (*CreateTaskResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTask not implemented")
+}
+func (UnimplementedTTTServiceServer) GetTask(context.Context, *GetTaskReq) (*GetTaskResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTask not implemented")
 }
 func (UnimplementedTTTServiceServer) mustEmbedUnimplementedTTTServiceServer() {}
 func (UnimplementedTTTServiceServer) testEmbeddedByValue()                    {}
@@ -282,6 +316,42 @@ func _TTTService_DeleteTag_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TTTService_CreateTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTaskReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TTTServiceServer).CreateTask(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TTTService_CreateTask_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TTTServiceServer).CreateTask(ctx, req.(*CreateTaskReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TTTService_GetTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTaskReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TTTServiceServer).GetTask(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TTTService_GetTask_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TTTServiceServer).GetTask(ctx, req.(*GetTaskReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TTTService_ServiceDesc is the grpc.ServiceDesc for TTTService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -312,6 +382,14 @@ var TTTService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteTag",
 			Handler:    _TTTService_DeleteTag_Handler,
+		},
+		{
+			MethodName: "CreateTask",
+			Handler:    _TTTService_CreateTask_Handler,
+		},
+		{
+			MethodName: "GetTask",
+			Handler:    _TTTService_GetTask_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

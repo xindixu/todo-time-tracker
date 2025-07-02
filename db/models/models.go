@@ -91,6 +91,7 @@ func (Tag) TableName() string {
 type TaskStatus string
 
 const (
+	TaskStatusInvalid    TaskStatus = "INVALID"
 	TaskStatusTodo       TaskStatus = "TODO"
 	TaskStatusInProgress TaskStatus = "IN_PROGRESS"
 	TaskStatusBlocked    TaskStatus = "BLOCKED"

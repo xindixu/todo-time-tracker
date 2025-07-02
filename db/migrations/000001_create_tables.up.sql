@@ -60,7 +60,7 @@ CREATE TABLE tasks (
   name VARCHAR(255) NOT NULL,
   description TEXT,
   status task_status NOT NULL,
-  estimated_duration INTERVAL,
+  estimated_duration BIGINT,
   UNIQUE (account_id, name)
 );
 CREATE INDEX idx_tasks_account_id ON tasks(account_id);
