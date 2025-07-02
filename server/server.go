@@ -24,11 +24,11 @@ type TTTServer struct {
 	accessor *accessors.DBAccessor
 }
 
-// NewTTTServer creates a new TTTServer instance with database connection
-func NewTTTServer(db *db.DBConnection) *TTTServer {
+// NewTTTServer creates a new TTTServer instance with database connection and accessor
+func NewTTTServer(db *db.DBConnection, accessor *accessors.DBAccessor) *TTTServer {
 	return &TTTServer{
 		db:       db,
-		accessor: accessors.NewDBAccessor(db),
+		accessor: accessor,
 	}
 }
 
@@ -59,22 +59,25 @@ func extractInfoFromRequest(req interface{}) (string, string, string) {
 	return "", "", ""
 }
 
-func populateContext(ctx context.Context, userUuid, userName, token string) context.Context {
+func populateContext(ctx context.Context, userID, accountID int64, userName, token string) context.Context {
 
 	// Add username to the gRPC context for downstream use
-	ctx = context.WithValue(ctx, utils.ContextKeyUserID, userUuid)
+	ctx = context.WithValue(ctx, utils.ContextKeyUserID, userID)
 	ctx = context.WithValue(ctx, utils.ContextKeyToken, token)
-
-	// TODO: find account id from user uuid
-	// validate token, user uuid, user name
-
-	ctx = context.WithValue(ctx, utils.ContextKeyAccountID, userUuid)
+	ctx = context.WithValue(ctx, utils.ContextKeyAccountID, accountID)
+	ctx = context.WithValue(ctx, utils.ContextKeyUserName, userName)
 
 	return ctx
 }
 
 // RequestInterceptor is a unary server interceptor that logs requests and updates context
-func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+func RequestInterceptor(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+	accessor *accessors.DBAccessor,
+) (interface{}, error) {
 	startTime := time.Now()
 
 	// Extract request details for logging
@@ -82,7 +85,7 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 	userUuid, userName, token := extractInfoFromRequest(req)
 
 	// Log incoming request
-	log.Printf("[REQUEST] Method: %s, User: %s, Time: %s", methodName, userName, startTime.Format(time.RFC3339))
+	log.Printf("[REQUEST] Method: %s, User: %s, Time: %s, Request: %v", methodName, userName, startTime.Format(time.RFC3339), req)
 
 	// Validate that username is provided for all requests
 	if userUuid == "" || userName == "" || token == "" {
@@ -90,8 +93,16 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 		return nil, status.Error(codes.Unauthenticated, "user info is required in context")
 	}
 
+	// Get user info from database
+	userAccount, err := accessor.GetUserAccountByUUID(ctx, userUuid)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, utils.WrapAsStr(err, "invalid user info"))
+	}
+
+	// TODO: validate token
+
 	// Add user info to the gRPC context for downstream use
-	ctx = populateContext(ctx, userUuid, userName, token)
+	ctx = populateContext(ctx, userAccount.User.ID, userAccount.Account.ID, userName, token)
 	ctx = context.WithValue(ctx, utils.ContextKeyRequestTime, startTime)
 
 	// Call the actual handler
@@ -105,16 +116,18 @@ func RequestInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: ERROR, Error: %v",
 			methodName, userName, duration, err)
 	} else {
-		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: SUCCESS",
-			methodName, userName, duration)
+		log.Printf("[RESPONSE] Method: %s, User: %s, Duration: %v, Status: SUCCESS, Response: %v",
+			methodName, userName, duration, resp)
 	}
 
 	return resp, err
 }
 
 // GetServerOptions returns gRPC server options with the interceptor
-func GetServerOptions() []grpc.ServerOption {
+func GetServerOptions(accessor *accessors.DBAccessor) []grpc.ServerOption {
 	return []grpc.ServerOption{
-		grpc.UnaryInterceptor(RequestInterceptor),
+		grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			return RequestInterceptor(ctx, req, info, handler, accessor)
+		}),
 	}
 }

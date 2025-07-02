@@ -13,7 +13,7 @@ import (
 
 type UserAccessor interface {
 	CreateUser(ctx context.Context, uuid uuid.UUID, name string, email string, password string) (*models.User, error)
-	// GetUserByUUID(ctx context.Context, uuid string) (*models.User, error)
+	GetUserAccountByUUID(ctx context.Context, uuid string) (*models.UserAccountWrapper, error)
 }
 
 // Ensure DBAccessor implements UserAccessor
@@ -31,8 +31,8 @@ func (a *DBAccessor) CreateUser(ctx context.Context, uuid uuid.UUID, name string
 	}
 	defer tx.Rollback()
 
-	usersTable := goqu.T("users")
-	accountsTable := goqu.T("accounts")
+	usersTable := goqu.T(models.UsersTable)
+	accountsTable := goqu.T(models.AccountsTable)
 
 	account := &models.Account{
 		UUID: uuid,
@@ -87,4 +87,43 @@ func (a *DBAccessor) CreateUser(ctx context.Context, uuid uuid.UUID, name string
 	user.CreatedAt = createdAt
 	user.UpdatedAt = updatedAt
 	return user, nil
+}
+
+func (a *DBAccessor) GetUserAccountByUUID(ctx context.Context, uuid string) (*models.UserAccountWrapper, error) {
+	usersTable := goqu.T(models.UsersTable)
+	accountsTable := goqu.T(models.AccountsTable)
+
+	q := a.Builder.Select(
+		// User
+		usersTable.Col("id").As("user_id"),
+		usersTable.Col("uuid").As("user_uuid"),
+		usersTable.Col("created_at").As("user_created_at"),
+		usersTable.Col("updated_at").As("user_updated_at"),
+		usersTable.Col("account_id").As("user_account_id"),
+		usersTable.Col("name").As("user_name"),
+		usersTable.Col("email").As("user_email"),
+		usersTable.Col("password").As("user_password"),
+		// Account
+		accountsTable.Col("id").As("account_id"),
+		accountsTable.Col("uuid").As("account_uuid"),
+		accountsTable.Col("created_at").As("account_created_at"),
+		accountsTable.Col("updated_at").As("account_updated_at"),
+		accountsTable.Col("type").As("account_type"),
+	).
+		From(usersTable).
+		Join(accountsTable, goqu.On(usersTable.Col("account_id").Eq(accountsTable.Col("id")))).
+		Where(usersTable.Col("uuid").Eq(uuid))
+
+	query, args, err := q.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	var userAccountFlat models.UserAccountWrapperFlat
+	err = a.DB.QueryRowxContext(ctx, query, args...).StructScan(&userAccountFlat)
+	if err != nil {
+		return nil, err
+	}
+
+	return userAccountFlat.ToUserAccountWrapper(), nil
 }

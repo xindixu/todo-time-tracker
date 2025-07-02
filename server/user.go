@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"log"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -15,8 +14,6 @@ import (
 )
 
 func (s *TTTServer) CreateUser(ctx context.Context, req *ttt.CreateUserReq) (*ttt.CreateUserResp, error) {
-	username := getUsername(ctx)
-	log.Printf("CreateUser: Processing request for user: %s, name: %s", username, req.Name)
 
 	// Validate input
 	if req.Name == "" {
@@ -54,7 +51,6 @@ func (s *TTTServer) CreateUser(ctx context.Context, req *ttt.CreateUserReq) (*tt
 		Email: dbUser.Email,
 	}
 
-	log.Printf("CreateUser: Successfully created user: %s", protoUser.Name)
 	return &ttt.CreateUserResp{
 		User: protoUser,
 	}, nil

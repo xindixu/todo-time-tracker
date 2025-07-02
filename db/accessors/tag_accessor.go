@@ -21,7 +21,7 @@ var _ TagAccessor = (*DBAccessor)(nil)
 
 // CreateTag creates a new tag in the database
 func (a *DBAccessor) CreateTag(ctx context.Context, uuid uuid.UUID, name string) (*models.Tag, error) {
-	tagsTable := goqu.T("tags")
+	tagsTable := goqu.T(models.TagsTable)
 
 	// TODO: use account id from context
 	// accountId := ctx.Value(utils.ContextKeyAccountID).(int64)

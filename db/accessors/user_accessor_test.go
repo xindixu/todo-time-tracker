@@ -73,20 +73,19 @@ func (s *UserAccessorTestSuite) TestCreateUser_Success() {
 	assert.NotZero(s.T(), user.UpdatedAt)
 
 	// Verify the user was actually created in the database
-	var dbUser models.User
-	err = s.dbConnection.DB.Get(&dbUser, "SELECT * FROM users WHERE uuid = $1", testUUID)
+	userAccount, err := s.accessor.GetUserAccountByUUID(ctx, testUUID.String())
 	require.NoError(s.T(), err)
-	assert.Equal(s.T(), testUUID, dbUser.UUID)
-	assert.Equal(s.T(), testName, dbUser.Name)
-	assert.Equal(s.T(), testEmail, dbUser.Email)
-	assert.Equal(s.T(), testPassword, dbUser.Password)
+	assert.NotNil(s.T(), userAccount)
+	assert.Equal(s.T(), testUUID, userAccount.User.UUID)
+	assert.Equal(s.T(), testName, userAccount.User.Name)
+	assert.Equal(s.T(), testEmail, userAccount.User.Email)
+	assert.Equal(s.T(), testPassword, userAccount.User.Password)
 
-	// Verify the account was created
-	var account models.Account
-	err = s.dbConnection.DB.Get(&account, "SELECT * FROM accounts WHERE id = $1", user.AccountID)
-	require.NoError(s.T(), err)
-	assert.Equal(s.T(), testUUID, account.UUID)
-	assert.Equal(s.T(), models.AccountTypeUser, account.Type)
+	assert.Equal(s.T(), testUUID, userAccount.Account.UUID)
+	assert.Equal(s.T(), models.AccountTypeUser, userAccount.Account.Type)
+	assert.Greater(s.T(), userAccount.Account.ID, int64(0))
+	assert.NotZero(s.T(), userAccount.Account.CreatedAt)
+	assert.NotZero(s.T(), userAccount.Account.UpdatedAt)
 }
 
 // TestCreateUser_DuplicateUUID tests creating a user with duplicate UUID
@@ -235,10 +234,10 @@ func (s *UserAccessorTestSuite) TestCreateUser_TransactionRollback() {
 	// the transaction is properly rolled back and no data is left in the database
 
 	// Get initial counts
-	var initialUserCount, initialAccountCount int
-	err := s.dbConnection.DB.Get(&initialUserCount, "SELECT COUNT(*) FROM users")
+	ctx := context.Background()
+	initialUserCount, err := s.accessor.CountModels(ctx, models.UsersTable)
 	require.NoError(s.T(), err)
-	err = s.dbConnection.DB.Get(&initialAccountCount, "SELECT COUNT(*) FROM accounts")
+	initialAccountCount, err := s.accessor.CountModels(ctx, models.AccountsTable)
 	require.NoError(s.T(), err)
 
 	// Create a user successfully first
@@ -247,7 +246,6 @@ func (s *UserAccessorTestSuite) TestCreateUser_TransactionRollback() {
 	testEmail1 := "john@example.com"
 	testPassword1 := "password123"
 
-	ctx := context.Background()
 	user1, err := s.accessor.CreateUser(ctx, testUUID1, testName1, testEmail1, testPassword1)
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), user1)
@@ -263,10 +261,9 @@ func (s *UserAccessorTestSuite) TestCreateUser_TransactionRollback() {
 	assert.Nil(s.T(), user2)
 
 	// Verify that only the first user exists (transaction was rolled back)
-	var finalUserCount, finalAccountCount int
-	err = s.dbConnection.DB.Get(&finalUserCount, "SELECT COUNT(*) FROM users")
+	finalUserCount, err := s.accessor.CountModels(ctx, models.UsersTable)
 	require.NoError(s.T(), err)
-	err = s.dbConnection.DB.Get(&finalAccountCount, "SELECT COUNT(*) FROM accounts")
+	finalAccountCount, err := s.accessor.CountModels(ctx, models.AccountsTable)
 	require.NoError(s.T(), err)
 
 	assert.Equal(s.T(), initialUserCount+1, finalUserCount)       // Only first user was added

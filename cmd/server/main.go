@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"todo-time-tracker/db"
+	"todo-time-tracker/db/accessors"
 	"todo-time-tracker/proto/go/ttt"
 	"todo-time-tracker/server"
 )
@@ -38,12 +39,15 @@ func main() {
 		log.Fatalf("Failed to listen on port %s: %v", port, err)
 	}
 
+	// Create accessor
+	accessor := accessors.NewDBAccessor(database)
+
 	// Create a new gRPC server with interceptors
-	serverOptions := server.GetServerOptions()
+	serverOptions := server.GetServerOptions(accessor)
 	s := grpc.NewServer(serverOptions...)
 
 	// Register the TTT service with database
-	tttServer := server.NewTTTServer(database)
+	tttServer := server.NewTTTServer(database, accessor)
 	ttt.RegisterTTTServiceServer(s, tttServer)
 
 	// Register reflection service on gRPC server for development

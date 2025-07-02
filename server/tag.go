@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -17,9 +16,6 @@ import (
 
 // CreateTag creates a new tag
 func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.CreateTagResp, error) {
-	username := getUsername(ctx)
-	log.Printf("CreateTag: Processing request for user: %s, name: %s", username, req.Name)
-
 	// Validate input (authentication is handled by interceptor)
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "tag name cannot be empty")
@@ -43,8 +39,6 @@ func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.
 		UpdatedAt: timestamppb.New(dbTag.UpdatedAt),
 	}
 
-	log.Printf("CreateTag: Successfully created tag: %s (UUID: %s) by user: %s", protoTag.Name, protoTag.Uuid, username)
-
 	return &ttt.CreateTagResp{
 		Tag: protoTag,
 	}, nil
@@ -52,8 +46,6 @@ func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.
 
 // GetTag retrieves a tag by UUID
 func (s *TTTServer) GetTag(ctx context.Context, req *ttt.GetTagReq) (*ttt.GetTagResp, error) {
-	username := getUsername(ctx)
-	log.Printf("GetTag: Processing request for user: %s, UUID: %s", username, req.Uuid)
 
 	// Validate input
 	if req.Uuid == "" {
@@ -77,8 +69,6 @@ func (s *TTTServer) GetTag(ctx context.Context, req *ttt.GetTagReq) (*ttt.GetTag
 		CreatedAt: timestamppb.New(dbTag.CreatedAt),
 		UpdatedAt: timestamppb.New(dbTag.UpdatedAt),
 	}
-
-	log.Printf("GetTag: Successfully retrieved tag: %s (UUID: %s) for user: %s", protoTag.Name, protoTag.Uuid, username)
 
 	return &ttt.GetTagResp{
 		Tag: protoTag,
