@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"todo-time-tracker/db/models"
+	goutils "todo-time-tracker/go-utils"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
@@ -23,13 +24,12 @@ var _ TagAccessor = (*DBAccessor)(nil)
 func (a *DBAccessor) CreateTag(ctx context.Context, uuid uuid.UUID, name string) (*models.Tag, error) {
 	tagsTable := goqu.T(models.TagsTable)
 
-	// TODO: use account id from context
-	// accountId := ctx.Value(utils.ContextKeyAccountID).(int64)
+	accountID := ctx.Value(goutils.ContextKeyAccountID).(int64)
 
 	tag := &models.Tag{
 		UUID:      uuid,
 		Name:      name,
-		AccountID: 1,
+		AccountID: accountID,
 	}
 
 	// Build insert query with RETURNING clause to get the inserted ID
