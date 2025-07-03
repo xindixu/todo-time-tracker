@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"os"
@@ -21,14 +22,22 @@ const (
 func main() {
 	log.Println("🔄 Starting Todo Time Tracker gRPC server...")
 
-	// Initialize database
-	dbConnStr := os.Getenv("DATABASE_URL")
-	database, err := db.InitDatabaseConnection(dbConnStr)
+	ctx := context.Background()
+
+	// Initialize databases
+	sqlDBConnStr := os.Getenv("SQL_DB_URL")
+	graphDBConnArgs := db.GraphDBConnectionArgs{
+		DBUri:      os.Getenv("GRAPH_DB_URI"),
+		DBUser:     os.Getenv("GRAPH_DB_USER"),
+		DBPassword: os.Getenv("GRAPH_DB_PASSWORD"),
+	}
+
+	database, err := db.InitDatabaseConnection(ctx, sqlDBConnStr, graphDBConnArgs)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer func() {
-		if err = database.DB.Close(); err != nil {
+		if err = database.Close(ctx); err != nil {
 			log.Fatalf("Failed to close database: %v", err)
 		}
 	}()

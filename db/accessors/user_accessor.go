@@ -25,7 +25,7 @@ func (a *DBAccessor) CreateUser(ctx context.Context, uuid uuid.UUID, name string
 		return nil, errors.New("invalid user data")
 	}
 
-	tx, err := a.Builder.Begin()
+	tx, err := a.SQLBuilder.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (a *DBAccessor) GetUserAccountByUUID(ctx context.Context, uuid string) (*mo
 	usersTable := goqu.T(models.UsersTable)
 	accountsTable := goqu.T(models.AccountsTable)
 
-	q := a.Builder.Select(
+	q := a.SQLBuilder.Select(
 		// User
 		usersTable.Col("id").As("user_id"),
 		usersTable.Col("uuid").As("user_uuid"),
@@ -120,7 +120,7 @@ func (a *DBAccessor) GetUserAccountByUUID(ctx context.Context, uuid string) (*mo
 	}
 
 	var userAccountFlat models.UserAccountWrapperFlat
-	err = a.DB.QueryRowxContext(ctx, query, args...).StructScan(&userAccountFlat)
+	err = a.SQLDB.QueryRowxContext(ctx, query, args...).StructScan(&userAccountFlat)
 	if err != nil {
 		return nil, err
 	}

@@ -33,7 +33,7 @@ func (a *DBAccessor) CreateTag(ctx context.Context, uuid uuid.UUID, name string)
 	}
 
 	// Build insert query with RETURNING clause to get the inserted ID
-	insert := a.Builder.Insert(tagsTable).
+	insert := a.SQLBuilder.Insert(tagsTable).
 		Rows(tag).
 		Returning("id", "created_at", "updated_at")
 
@@ -45,7 +45,7 @@ func (a *DBAccessor) CreateTag(ctx context.Context, uuid uuid.UUID, name string)
 	var insertedID int64
 	var createdAt time.Time
 	var updatedAt time.Time
-	err = a.DB.QueryRowContext(ctx, query, args...).Scan(&insertedID, &createdAt, &updatedAt)
+	err = a.SQLDB.QueryRowContext(ctx, query, args...).Scan(&insertedID, &createdAt, &updatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -63,14 +63,14 @@ func (a *DBAccessor) GetTagByUUID(ctx context.Context, uuid string) (*models.Tag
 
 	tagsTable := goqu.T("tags")
 
-	query, args, err := a.Builder.From(tagsTable).
+	query, args, err := a.SQLBuilder.From(tagsTable).
 		Where(tagsTable.Col("uuid").Eq(uuid)).
 		ToSQL()
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.DB.QueryRowxContext(ctx, query, args...).StructScan(&tag)
+	err = a.SQLDB.QueryRowxContext(ctx, query, args...).StructScan(&tag)
 	if err != nil {
 		return nil, err
 	}

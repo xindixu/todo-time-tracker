@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -10,16 +11,16 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 
-	migrate "github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 // DBConnection holds the database connection and query builder
 type DBConnection struct {
-	DB      *sqlx.DB
-	Builder *goqu.Database
+	SQLDB      *sqlx.DB
+	SQLBuilder *goqu.Database
+	GraphDB    neo4j.DriverWithContext
 }
 
 // findProjectRoot finds the project root directory by looking for go.mod file
@@ -45,104 +46,47 @@ func findProjectRoot() (string, error) {
 	}
 }
 
-// InitDatabaseConnection initializes the PostgreSQL database connection
-func InitDatabaseConnection(dbConnStr string) (*DBConnection, error) {
-	log.Println("Initializing PostgreSQL database...")
+// InitDatabaseConnection initializes database connections
+func InitDatabaseConnection(ctx context.Context, sqlDBConnStr string, graphDBConnArgs GraphDBConnectionArgs) (*DBConnection, error) {
+	log.Println("Initializing databases...")
 
-	// Open PostgreSQL database
-	db, err := sqlx.Connect("postgres", dbConnStr)
+	sqlDB, sqlBuilder, err := InitSQLDBConnection(ctx, sqlDBConnStr)
 	if err != nil {
 		return nil, err
 	}
 
-	// Test the connection
-	if err := db.Ping(); err != nil {
-		err := db.Close()
-		if err != nil {
-			log.Println("Error closing database connection:", err)
-		}
+	graphDB, err := InitGraphDBConnection(ctx, graphDBConnArgs)
+	if err != nil {
 		return nil, err
 	}
 
-	// Initialize goqu with PostgreSQL dialect
-	dialect := goqu.Dialect("postgres")
-	builder := dialect.DB(db.DB)
-
-	dbConnection := &DBConnection{
-		DB:      db,
-		Builder: builder,
-	}
-
-	log.Println("Database connection initialized successfully")
-
-	return dbConnection, nil
-}
-
-// Migrate runs the database migrations
-func (d *DBConnection) Migrate() error {
-	log.Println("Running database migrations...")
-
-	driver, err := postgres.WithInstance(d.DB.DB, &postgres.Config{})
-	if err != nil {
-		log.Printf("Failed to create postgres driver: %v", err)
-		return err
-	}
-
-	// Find project root and use absolute path for migrations
-	projectRoot, err := findProjectRoot()
-	if err != nil {
-		log.Printf("Failed to find project root: %v", err)
-		return err
-	}
-
-	migrationsPath := filepath.Join(projectRoot, "db", "migrations")
-	migrationPath := "file://" + migrationsPath
-	m, err := migrate.NewWithDatabaseInstance(
-		migrationPath,
-		"postgres", driver,
-	)
-	if err != nil {
-		log.Printf("Failed to create migration instance with path %s: %v", migrationPath, err)
-		return err
-	}
-
-	// Check current version and dirty state
-	version, dirty, err := m.Version()
-	if err != nil && err != migrate.ErrNilVersion {
-		log.Printf("Failed to get migration version: %v", err)
-		return err
-	}
-
-	if dirty {
-		log.Printf("Database is in dirty state at version %d. Attempting to force version...", version)
-		if err = m.Force(int(version)); err != nil {
-			log.Printf("Failed to force version %d: %v", version, err)
-			return err
-		}
-		log.Printf("Successfully forced version %d to clean state", version)
-	}
-
-	if err = m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Printf("Migration failed: %v", err)
-		return err
-	}
-
-	if err == migrate.ErrNoChange {
-		log.Println("No new migrations to apply")
-	} else {
-		log.Println("Migrations applied successfully")
-	}
-
-	return nil
+	return &DBConnection{
+		SQLDB:      sqlDB,
+		SQLBuilder: sqlBuilder,
+		GraphDB:    graphDB,
+	}, nil
 }
 
 // Close closes the database connection
-func (d *DBConnection) Close() error {
+func (d *DBConnection) Close(ctx context.Context) error {
 	log.Println("Closing database connection...")
-	return d.DB.Close()
+	err := d.SQLDB.Close()
+	if err != nil {
+		return err
+	}
+	err = d.GraphDB.Close(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Health checks if the database connection is healthy
-func (d *DBConnection) Health() error {
-	return d.DB.Ping()
+func (d *DBConnection) Health(ctx context.Context) error {
+	err := d.SQLDB.Ping()
+	if err != nil {
+		return err
+	}
+	err = d.GraphDB.VerifyConnectivity(ctx)
+	return nil
 }

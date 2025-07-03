@@ -156,7 +156,7 @@ func (suite *UserAccessorTestSuite) TestCreateUser_NewScenario() {
 The `test_helpers.go` file provides these utilities:
 
 - `IsPostgreSQLAvailable()` - Check if PostgreSQL is accessible
-- `CreateTestDatabase()` - Create and configure a test database
-- `CleanupTestData()` - Remove all test data
+- `CreateTestSQLDB()` - Create and configure a test database
+- `CleanupTestSQLDB()` - Remove all test data
 - `SkipIfNoPostgreSQL()` - Skip tests if PostgreSQL is unavailable
 - `DefaultTestDBConfig()` - Get default test database configuration

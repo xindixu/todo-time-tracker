@@ -29,7 +29,7 @@ func (s *UserAccessorTestSuite) SetupSuite() {
 	SkipIfNoPostgreSQL(s.T())
 
 	// Create test database
-	s.dbConnection, s.cleanup = CreateTestDatabase(s.T(), nil)
+	s.dbConnection, s.cleanup = CreateTestDB(s.T(), nil)
 
 	// Create accessor
 	s.accessor = NewDBAccessor(s.dbConnection)
@@ -45,7 +45,35 @@ func (s *UserAccessorTestSuite) TearDownSuite() {
 // SetupTest runs before each test
 func (s *UserAccessorTestSuite) SetupTest() {
 	// Clean up any existing data before each test
-	CleanupTestData(s.T(), s.dbConnection)
+	CleanupTestSQLDB(s.T(), s.dbConnection)
+}
+
+// TestMain runs the test suite
+func TestUserAccessorSuite(t *testing.T) {
+	suite.Run(t, new(UserAccessorTestSuite))
+}
+
+// TestCreateUser_InterfaceCompliance_Simple tests that DBAccessor implements UserAccessor interface
+// This test doesn't require a database connection
+func TestCreateUser_InterfaceCompliance_Simple(t *testing.T) {
+	// This test ensures that DBAccessor implements the UserAccessor interface
+	var _ UserAccessor = (*DBAccessor)(nil)
+
+	// If this compiles, the interface is properly implemented
+	t.Log("DBAccessor properly implements UserAccessor interface")
+}
+
+// TestNewDBAccessor tests the NewDBAccessor function
+func TestNewDBAccessor(t *testing.T) {
+	// Create a mock database connection
+	mockDB := &db.DBConnection{}
+
+	// Create accessor
+	accessor := NewDBAccessor(mockDB)
+
+	// Assert
+	assert.NotNil(t, accessor)
+	assert.Equal(t, mockDB, accessor.DBConnection)
 }
 
 // TestCreateUser_Success tests successful user creation
@@ -218,12 +246,12 @@ func (s *UserAccessorTestSuite) TestCreateUser_MultipleUsers() {
 
 	// Verify all users were created
 	var count int
-	err := s.dbConnection.DB.Get(&count, "SELECT COUNT(*) FROM users")
+	err := s.dbConnection.SQLDB.Get(&count, "SELECT COUNT(*) FROM users")
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), len(users), count)
 
 	// Verify all accounts were created
-	err = s.dbConnection.DB.Get(&count, "SELECT COUNT(*) FROM accounts WHERE type = $1", models.AccountTypeUser)
+	err = s.dbConnection.SQLDB.Get(&count, "SELECT COUNT(*) FROM accounts WHERE type = $1", models.AccountTypeUser)
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), len(users), count)
 }
@@ -271,7 +299,7 @@ func (s *UserAccessorTestSuite) TestCreateUser_TransactionRollback() {
 
 	// Verify the second user doesn't exist
 	var count int
-	err = s.dbConnection.DB.Get(&count, "SELECT COUNT(*) FROM users WHERE uuid = $1", testUUID2)
+	err = s.dbConnection.SQLDB.Get(&count, "SELECT COUNT(*) FROM users WHERE uuid = $1", testUUID2)
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), 0, count)
 }
@@ -283,32 +311,4 @@ func (s *UserAccessorTestSuite) TestCreateUser_InterfaceCompliance() {
 
 	// If this compiles, the interface is properly implemented
 	s.T().Log("DBAccessor properly implements UserAccessor interface")
-}
-
-// TestMain runs the test suite
-func TestUserAccessorSuite(t *testing.T) {
-	suite.Run(t, new(UserAccessorTestSuite))
-}
-
-// TestCreateUser_InterfaceCompliance_Simple tests that DBAccessor implements UserAccessor interface
-// This test doesn't require a database connection
-func TestCreateUser_InterfaceCompliance_Simple(t *testing.T) {
-	// This test ensures that DBAccessor implements the UserAccessor interface
-	var _ UserAccessor = (*DBAccessor)(nil)
-
-	// If this compiles, the interface is properly implemented
-	t.Log("DBAccessor properly implements UserAccessor interface")
-}
-
-// TestNewDBAccessor tests the NewDBAccessor function
-func TestNewDBAccessor(t *testing.T) {
-	// Create a mock database connection
-	mockDB := &db.DBConnection{}
-
-	// Create accessor
-	accessor := NewDBAccessor(mockDB)
-
-	// Assert
-	assert.NotNil(t, accessor)
-	assert.Equal(t, mockDB, accessor.DBConnection)
 }

@@ -15,7 +15,7 @@ func (c *TTTClient) CreateTag(ctx context.Context, name string) (*ttt.CreateTagR
 
 	req := &ttt.CreateTagReq{
 		Context: &contextpb.Context{
-			Username: c.username,
+			UserName: c.username,
 		},
 		Name: name,
 	}
@@ -35,7 +35,7 @@ func (c *TTTClient) GetTag(ctx context.Context, uuid string) (*ttt.GetTagResp, e
 
 	req := &ttt.GetTagReq{
 		Context: &contextpb.Context{
-			Username: c.username,
+			UserName: c.username,
 		},
 		Uuid: uuid,
 	}

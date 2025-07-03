@@ -13,20 +13,22 @@ type DBAccessor struct {
 	*db.DBConnection
 }
 
+// NewDBAccessor creates a new DBAccessor
 func NewDBAccessor(dbConnection *db.DBConnection) *DBAccessor {
 	return &DBAccessor{
 		DBConnection: dbConnection,
 	}
 }
 
+// CountModels counts the number of models in the database
 func (a *DBAccessor) CountModels(ctx context.Context, tableName string) (int64, error) {
-	query, args, err := a.Builder.Select(goqu.COUNT("*")).From(tableName).ToSQL()
+	query, args, err := a.SQLBuilder.Select(goqu.COUNT("*")).From(tableName).ToSQL()
 	if err != nil {
 		return 0, err
 	}
 
 	var count int64
-	err = a.DB.GetContext(ctx, &count, query, args...)
+	err = a.SQLDB.GetContext(ctx, &count, query, args...)
 	if err != nil {
 		return 0, err
 	}

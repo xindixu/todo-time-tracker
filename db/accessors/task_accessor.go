@@ -32,7 +32,7 @@ func (a *DBAccessor) CreateTask(ctx context.Context, uuid uuid.UUID, name string
 		AccountID:         accountID,
 	}
 
-	query, args, err := a.Builder.Insert(models.TasksTable).Rows(task).
+	query, args, err := a.SQLBuilder.Insert(models.TasksTable).Rows(task).
 		Returning("id", "created_at", "updated_at").ToSQL()
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (a *DBAccessor) CreateTask(ctx context.Context, uuid uuid.UUID, name string
 	var id int64
 	var createdAt time.Time
 	var updatedAt time.Time
-	err = a.DB.QueryRowxContext(ctx, query, args...).Scan(&id, &createdAt, &updatedAt)
+	err = a.SQLDB.QueryRowxContext(ctx, query, args...).Scan(&id, &createdAt, &updatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -55,13 +55,13 @@ func (a *DBAccessor) CreateTask(ctx context.Context, uuid uuid.UUID, name string
 // GetTaskByUUID retrieves a task by its UUID
 func (a *DBAccessor) GetTaskByUUID(ctx context.Context, uuid string) (*models.Task, error) {
 	tasksTable := goqu.T(models.TasksTable)
-	query, args, err := a.Builder.From(tasksTable).Where(tasksTable.Col("uuid").Eq(uuid)).ToSQL()
+	query, args, err := a.SQLBuilder.From(tasksTable).Where(tasksTable.Col("uuid").Eq(uuid)).ToSQL()
 	if err != nil {
 		return nil, err
 	}
 
 	var task models.Task
-	err = a.DB.QueryRowxContext(ctx, query, args...).StructScan(&task)
+	err = a.SQLDB.QueryRowxContext(ctx, query, args...).StructScan(&task)
 	if err != nil {
 		return nil, err
 	}

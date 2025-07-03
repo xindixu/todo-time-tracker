@@ -12,30 +12,44 @@ proto-gen:
 	mkdir -p proto/go
 	protoc --go_out=. --go-grpc_out=. proto/*.proto
 
-# Database
-DATABASE_SUPERUSER=postgres
-DATABASE_USER=tttuser
-DATABASE_NAME=tttdb
-DATABASE_URL=postgres://$(DATABASE_USER)@localhost:5432/$(DATABASE_NAME)?sslmode=disable
+# SQL DB
+SQL_DB_SUPER_USER=postgres
+SQL_DB_USER=tttuser
+SQL_DB_NAME=tttdb
+SQL_DB_URL=postgres://$(SQL_DB_USER)@localhost:5432/$(SQL_DB_NAME)?sslmode=disable
 
-db-create:
+sqldb-create:
 	@echo "Creating database..."
-	createdb $(DATABASE_NAME)
-	createuser $(DATABASE_USER)
-	psql -h localhost -p 5432 -U $(DATABASE_SUPERUSER) -d $(DATABASE_NAME) -c "CREATE EXTENSION IF NOT EXISTS btree_gist;"
+	createdb $(SQL_DB_NAME)
+	createuser $(SQL_DB_USER)
+	psql -h localhost -p 5432 -U $(SQL_DB_SUPER_USER) -d $(SQL_DB_NAME) -c "CREATE EXTENSION IF NOT EXISTS btree_gist;"
 
-db-connect:
+sqldb-connect:
 	@echo "Connecting to database..."
-	psql -h localhost -p 5432 -U $(DATABASE_USER) -d $(DATABASE_NAME)
+	psql -h localhost -p 5432 -U $(SQL_DB_USER) -d $(SQL_DB_NAME)
 
-db-migrate:
+sqldb-migrate:
 	@echo "Migrating database..."
-	DATABASE_URL=$(DATABASE_URL) go run cmd/db/main.go
+	SQL_DB_URL=$(SQL_DB_URL) go run cmd/db/main.go
 
-db-drop:
+sqldb-drop:
 	@echo "Dropping database..."
-	dropdb $(DATABASE_NAME)
-	dropuser $(DATABASE_USER)
+	dropdb $(SQL_DB_NAME)
+	dropuser $(SQL_DB_USER)
+
+# Graph DB
+GRAPH_DB_NAME=tttdb
+GRAPH_DB_USER=neo4j
+GRAPH_DB_PASSWORD=password
+GRAPH_DB_URL=neo4j://127.0.0.1:7687
+
+graphdb-create:
+	@echo "Creating graph database..."
+	echo "CREATE DATABASE ${GRAPH_DB_NAME};" | cypher-shell -u neo4j -p password -a neo4j://127.0.0.1:7687 -d system
+
+graphdb-drop:
+	@echo "Dropping graph database..."
+	echo "DROP DATABASE ${GRAPH_DB_NAME};" | cypher-shell -u neo4j -p password -a neo4j://127.0.0.1:7687 -d system
 
 # CLI
 build-cli:
@@ -59,7 +73,7 @@ server-build:
 
 server-run: server-build
 	@echo "Running $(SERVER_BINARY_NAME)..."
-	DATABASE_URL=$(DATABASE_URL) $(SERVER_BINARY_PATH)
+	SQL_DB_URL=$(SQL_DB_URL) GRAPH_DB_URI=$(GRAPH_DB_URL) GRAPH_DB_USER=$(GRAPH_DB_USER) GRAPH_DB_PASSWORD=$(GRAPH_DB_PASSWORD) $(SERVER_BINARY_PATH)
 
 
 # Docker

@@ -24,7 +24,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://user:pass@db:5432/tttdb?sslmode=disable
+      SQL_DB_URL: postgres://user:pass@db:5432/tttdb?sslmode=disable
     ports:
       - "50051:50051"
     restart: unless-stopped

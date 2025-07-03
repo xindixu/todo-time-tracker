@@ -1,6 +1,7 @@
 package accessors
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -16,22 +17,17 @@ import (
 
 // TestDBConfig holds configuration for test database
 type TestDBConfig struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-	DBName   string
-}
+	SQLDBHost     string
+	SQLDBPort     string
+	SQLDBUser     string
+	SQLDBPassword string
+	SQLDBName     string
+	SQLDBConnStr  string
 
-// DefaultTestDBConfig returns default test database configuration
-func DefaultTestDBConfig() *TestDBConfig {
-	return &TestDBConfig{
-		Host:     getEnvOrDefault("TEST_DB_HOST", "localhost"),
-		Port:     getEnvOrDefault("TEST_DB_PORT", "5432"),
-		User:     getEnvOrDefault("TEST_DB_USER", "postgres"),
-		Password: getEnvOrDefault("TEST_DB_PASSWORD", "postgres"),
-		DBName:   fmt.Sprintf("test_ttt_%d", time.Now().UnixNano()),
-	}
+	GraphDBUri      string
+	GraphDBUser     string
+	GraphDBPassword string
+	GraphDBName     string
 }
 
 // getEnvOrDefault returns environment variable value or default
@@ -42,15 +38,33 @@ func getEnvOrDefault(key, defaultValue string) string {
 	return defaultValue
 }
 
+// DefaultTestDBConfig returns default test database configuration
+func DefaultTestDBConfig() *TestDBConfig {
+	config := &TestDBConfig{
+		SQLDBHost:     getEnvOrDefault("TEST_SQL_DB_HOST", "localhost"),
+		SQLDBPort:     getEnvOrDefault("TEST_SQL_DB_PORT", "5432"),
+		SQLDBUser:     getEnvOrDefault("TEST_SQL_DB_USER", "postgres"),
+		SQLDBPassword: getEnvOrDefault("TEST_SQL_DB_PASSWORD", "postgres"),
+		SQLDBName:     fmt.Sprintf("test_ttt_%d", time.Now().UnixNano()),
+
+		GraphDBUri:      getEnvOrDefault("TEST_GRAPH_DB_URI", "neo4j://127.0.0.1:7687"),
+		GraphDBUser:     getEnvOrDefault("TEST_GRAPH_DB_USER", "neo4j"),
+		GraphDBPassword: getEnvOrDefault("TEST_GRAPH_DB_PASSWORD", "password"),
+		GraphDBName:     fmt.Sprintf("test_ttt_%d", time.Now().UnixNano()),
+	}
+
+	config.SQLDBConnStr = fmt.Sprintf("postgres://%s:%s@%s:%s/postgres?sslmode=disable",
+		config.SQLDBUser, config.SQLDBPassword, config.SQLDBHost, config.SQLDBPort)
+
+	return config
+}
+
 // IsPostgreSQLAvailable checks if PostgreSQL is available for testing
 func IsPostgreSQLAvailable(t *testing.T) bool {
 	config := DefaultTestDBConfig()
 
 	// Try to connect to default postgres database
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/postgres?sslmode=disable",
-		config.User, config.Password, config.Host, config.Port)
-
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", config.SQLDBConnStr)
 	if err != nil {
 		t.Logf("PostgreSQL not available: %v", err)
 		return false
@@ -66,70 +80,94 @@ func IsPostgreSQLAvailable(t *testing.T) bool {
 	return true
 }
 
-// CreateTestDatabase creates a test database and returns connection
-func CreateTestDatabase(t *testing.T, config *TestDBConfig) (*db.DBConnection, func()) {
+// CreateTestDB creates a test database and returns connection
+func CreateTestDB(t *testing.T, config *TestDBConfig) (*db.DBConnection, func()) {
 	if config == nil {
 		config = DefaultTestDBConfig()
 	}
 
+	// -- SQL DB --
 	// Connect to default postgres database to create test database
 	defaultConnStr := fmt.Sprintf("postgres://%s:%s@%s:%s/postgres?sslmode=disable",
-		config.User, config.Password, config.Host, config.Port)
+		config.SQLDBUser, config.SQLDBPassword, config.SQLDBHost, config.SQLDBPort)
 
 	defaultDB, err := sql.Open("postgres", defaultConnStr)
 	require.NoError(t, err, "Failed to connect to default database")
 	defer defaultDB.Close()
 
+	// Drop test database if it exists
+	_, err = defaultDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", config.SQLDBName))
+	require.NoError(t, err, "Failed to drop test database")
+
 	// Create test database
-	_, err = defaultDB.Exec(fmt.Sprintf("CREATE DATABASE %s", config.DBName))
+	_, err = defaultDB.Exec(fmt.Sprintf("CREATE DATABASE %s", config.SQLDBName))
 	require.NoError(t, err, "Failed to create test database")
 
 	// Connect to test database
-	testConnStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		config.User, config.Password, config.Host, config.Port, config.DBName)
-
-	dbConnection, err := db.InitDatabaseConnection(testConnStr)
+	ctx := context.Background()
+	sqlDB, sqlBuilder, err := db.InitSQLDBConnection(ctx, config.SQLDBConnStr)
 	require.NoError(t, err, "Failed to initialize test database connection")
 
+	// -- GRAPH DB --
+	graphDB, err := db.InitGraphDBConnection(ctx, db.GraphDBConnectionArgs{
+		DBUri:      config.GraphDBUri,
+		DBUser:     config.GraphDBUser,
+		DBPassword: config.GraphDBPassword,
+		DBName:     config.GraphDBName,
+	})
+	require.NoError(t, err, "Failed to initialize graph database connection")
+
+	dbConnection := &db.DBConnection{
+		SQLDB:      sqlDB,
+		SQLBuilder: sqlBuilder,
+		GraphDB:    graphDB,
+	}
+
 	// Run migrations
-	err = dbConnection.Migrate()
+	err = dbConnection.SQLDBMigrate()
 	require.NoError(t, err, "Failed to run database migrations")
 
 	// Return cleanup function
 	cleanup := func() {
 		log.Println("Cleaning up test database")
-		dbConnection.Close()
-
-		// Reconnect to default database to drop test database
-		defaultDB, err := sql.Open("postgres", defaultConnStr)
+		err := dbConnection.Close(ctx)
 		if err != nil {
-			t.Logf("Warning: Failed to connect to default database for cleanup: %v", err)
-			return
-		}
-		defer defaultDB.Close()
-
-		// Terminate all connections to the test database
-		_, err = defaultDB.Exec(fmt.Sprintf(`
-			SELECT pg_terminate_backend(pid)
-			FROM pg_stat_activity
-			WHERE datname = '%s' AND pid <> pg_backend_pid()
-		`, config.DBName))
-		if err != nil {
-			t.Logf("Warning: Failed to terminate connections: %v", err)
+			t.Logf("Warning: Failed to close test database for cleanup: %v", err)
 		}
 
-		// Drop test database
-		_, err = defaultDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", config.DBName))
-		if err != nil {
-			t.Logf("Warning: Failed to drop test database: %v", err)
-		}
+		// // Reconnect to default database to drop test database
+		// defaultDB, err := sql.Open("postgres", defaultConnStr)
+		// if err != nil {
+		// 	t.Logf("Warning: Failed to connect to default database for cleanup: %v", err)
+		// 	return
+		// }
+		// err = defaultDB.Close()
+		// if err != nil {
+		// 	t.Logf("Warning: Failed to close default database for cleanup: %v", err)
+		// }
+
+		// // Terminate all connections to the test database
+		// _, err = defaultDB.Exec(fmt.Sprintf(`
+		// 	SELECT pg_terminate_backend(pid)
+		// 	FROM pg_stat_activity
+		// 	WHERE datname = '%s' AND pid <> pg_backend_pid()
+		// `, config.SQLDBName))
+		// if err != nil {
+		// 	t.Logf("Warning: Failed to terminate connections: %v", err)
+		// }
+
+		// // Drop test database
+		// _, err = defaultDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", config.SQLDBName))
+		// if err != nil {
+		// 	t.Logf("Warning: Failed to drop test database: %v", err)
+		// }
 	}
 
 	return dbConnection, cleanup
 }
 
-// CleanupTestData removes all test data from the database
-func CleanupTestData(t *testing.T, dbConnection *db.DBConnection) {
+// CleanupTestSQLDB removes all test data from the database
+func CleanupTestSQLDB(t *testing.T, dbConnection *db.DBConnection) {
 	// Delete in reverse order of dependencies
 	tables := []string{
 		"task_tags",
@@ -144,7 +182,7 @@ func CleanupTestData(t *testing.T, dbConnection *db.DBConnection) {
 	}
 
 	for _, table := range tables {
-		_, err := dbConnection.DB.Exec(fmt.Sprintf("DELETE FROM %s", table))
+		_, err := dbConnection.SQLDB.Exec(fmt.Sprintf("DELETE FROM %s", table))
 		if err != nil {
 			t.Logf("Warning: Failed to cleanup table %s: %v", table, err)
 		}
