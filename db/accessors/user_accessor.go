@@ -13,7 +13,7 @@ import (
 
 type UserAccessor interface {
 	CreateUser(ctx context.Context, uuid uuid.UUID, name string, email string, password string) (*models.User, error)
-	GetUserAccountByUUID(ctx context.Context, uuid string) (*models.UserAccountWrapper, error)
+	GetUserAccountByUUID(ctx context.Context, uuid uuid.UUID) (*models.UserAccountWrapper, error)
 }
 
 // Ensure DBAccessor implements UserAccessor
@@ -89,7 +89,7 @@ func (a *DBAccessor) CreateUser(ctx context.Context, uuid uuid.UUID, name string
 	return user, nil
 }
 
-func (a *DBAccessor) GetUserAccountByUUID(ctx context.Context, uuid string) (*models.UserAccountWrapper, error) {
+func (a *DBAccessor) GetUserAccountByUUID(ctx context.Context, uuid uuid.UUID) (*models.UserAccountWrapper, error) {
 	usersTable := goqu.T(models.UsersTable)
 	accountsTable := goqu.T(models.AccountsTable)
 
@@ -112,7 +112,7 @@ func (a *DBAccessor) GetUserAccountByUUID(ctx context.Context, uuid string) (*mo
 	).
 		From(usersTable).
 		Join(accountsTable, goqu.On(usersTable.Col("account_id").Eq(accountsTable.Col("id")))).
-		Where(usersTable.Col("uuid").Eq(uuid))
+		Where(usersTable.Col("uuid").Eq(uuid.String()))
 
 	query, args, err := q.ToSQL()
 	if err != nil {

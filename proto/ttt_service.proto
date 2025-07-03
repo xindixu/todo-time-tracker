@@ -24,6 +24,7 @@ service TTTService {
   // Task operations
   rpc CreateTask(CreateTaskReq) returns (CreateTaskResp);
   rpc GetTask(GetTaskReq) returns (GetTaskResp);
+  rpc LinkTasks(LinkTasksReq) returns (LinkTasksResp);
 }
 
 
@@ -109,3 +110,12 @@ message GetTaskResp {
   model.Task task = 1;
 }
 
+message LinkTasksReq {
+  context.Context context = 1;
+  string from_task_uuid = 2;
+  string to_task_uuid = 3;
+  model.Task.Link link = 4;
+}
+
+message LinkTasksResp {
+}

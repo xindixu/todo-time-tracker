@@ -75,7 +75,7 @@ func (Account_Type) EnumDescriptor() ([]byte, []int) {
 type Task_Status int32
 
 const (
-	Task_NONE        Task_Status = 0
+	Task_STATUS_NONE Task_Status = 0
 	Task_TODO        Task_Status = 1
 	Task_IN_PROGRESS Task_Status = 2
 	Task_DONE        Task_Status = 3
@@ -85,14 +85,14 @@ const (
 // Enum value maps for Task_Status.
 var (
 	Task_Status_name = map[int32]string{
-		0: "NONE",
+		0: "STATUS_NONE",
 		1: "TODO",
 		2: "IN_PROGRESS",
 		3: "DONE",
 		4: "BLOCKED",
 	}
 	Task_Status_value = map[string]int32{
-		"NONE":        0,
+		"STATUS_NONE": 0,
 		"TODO":        1,
 		"IN_PROGRESS": 2,
 		"DONE":        3,
@@ -125,6 +125,61 @@ func (x Task_Status) Number() protoreflect.EnumNumber {
 // Deprecated: Use Task_Status.Descriptor instead.
 func (Task_Status) EnumDescriptor() ([]byte, []int) {
 	return file_proto_model_proto_rawDescGZIP(), []int{4, 0}
+}
+
+type Task_Link int32
+
+const (
+	Task_LINK_NONE    Task_Link = 0
+	Task_PARENT_OF    Task_Link = 1
+	Task_BLOCKS       Task_Link = 2
+	Task_RELATES_TO   Task_Link = 3
+	Task_DUPLICATE_OF Task_Link = 4
+)
+
+// Enum value maps for Task_Link.
+var (
+	Task_Link_name = map[int32]string{
+		0: "LINK_NONE",
+		1: "PARENT_OF",
+		2: "BLOCKS",
+		3: "RELATES_TO",
+		4: "DUPLICATE_OF",
+	}
+	Task_Link_value = map[string]int32{
+		"LINK_NONE":    0,
+		"PARENT_OF":    1,
+		"BLOCKS":       2,
+		"RELATES_TO":   3,
+		"DUPLICATE_OF": 4,
+	}
+)
+
+func (x Task_Link) Enum() *Task_Link {
+	p := new(Task_Link)
+	*p = x
+	return p
+}
+
+func (x Task_Link) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Task_Link) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_model_proto_enumTypes[2].Descriptor()
+}
+
+func (Task_Link) Type() protoreflect.EnumType {
+	return &file_proto_model_proto_enumTypes[2]
+}
+
+func (x Task_Link) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Task_Link.Descriptor instead.
+func (Task_Link) EnumDescriptor() ([]byte, []int) {
+	return file_proto_model_proto_rawDescGZIP(), []int{4, 1}
 }
 
 // Account message
@@ -582,7 +637,7 @@ func (x *Task) GetStatus() Task_Status {
 	if x != nil {
 		return x.Status
 	}
-	return Task_NONE
+	return Task_STATUS_NONE
 }
 
 func (x *Task) GetEstimatedDuration() *durationpb.Duration {
@@ -731,7 +786,7 @@ const file_proto_model_proto_rawDesc = "" +
 	"\faccount_uuid\x18\x05 \x01(\x03R\vaccountUuid\x12\x12\n" +
 	"\x04name\x18\x06 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\a \x01(\tR\vdescription\x12\x14\n" +
-	"\x05color\x18\b \x01(\tR\x05color\"\xb5\x03\n" +
+	"\x05color\x18\b \x01(\tR\x05color\"\x90\x04\n" +
 	"\x04Task\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04uuid\x18\x02 \x01(\tR\x04uuid\x129\n" +
@@ -743,13 +798,21 @@ const file_proto_model_proto_rawDesc = "" +
 	"\x04name\x18\x06 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\a \x01(\tR\vdescription\x12*\n" +
 	"\x06status\x18\b \x01(\x0e2\x12.model.Task.StatusR\x06status\x12H\n" +
-	"\x12estimated_duration\x18\t \x01(\v2\x19.google.protobuf.DurationR\x11estimatedDuration\"D\n" +
-	"\x06Status\x12\b\n" +
-	"\x04NONE\x10\x00\x12\b\n" +
+	"\x12estimated_duration\x18\t \x01(\v2\x19.google.protobuf.DurationR\x11estimatedDuration\"K\n" +
+	"\x06Status\x12\x0f\n" +
+	"\vSTATUS_NONE\x10\x00\x12\b\n" +
 	"\x04TODO\x10\x01\x12\x0f\n" +
 	"\vIN_PROGRESS\x10\x02\x12\b\n" +
 	"\x04DONE\x10\x03\x12\v\n" +
-	"\aBLOCKED\x10\x04\"\xb7\x02\n" +
+	"\aBLOCKED\x10\x04\"R\n" +
+	"\x04Link\x12\r\n" +
+	"\tLINK_NONE\x10\x00\x12\r\n" +
+	"\tPARENT_OF\x10\x01\x12\n" +
+	"\n" +
+	"\x06BLOCKS\x10\x02\x12\x0e\n" +
+	"\n" +
+	"RELATES_TO\x10\x03\x12\x10\n" +
+	"\fDUPLICATE_OF\x10\x04\"\xb7\x02\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x129\n" +
 	"\n" +
@@ -773,38 +836,39 @@ func file_proto_model_proto_rawDescGZIP() []byte {
 	return file_proto_model_proto_rawDescData
 }
 
-var file_proto_model_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_proto_model_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_proto_model_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_model_proto_goTypes = []any{
 	(Account_Type)(0),             // 0: model.Account.Type
 	(Task_Status)(0),              // 1: model.Task.Status
-	(*Account)(nil),               // 2: model.Account
-	(*Organization)(nil),          // 3: model.Organization
-	(*User)(nil),                  // 4: model.User
-	(*Tag)(nil),                   // 5: model.Tag
-	(*Task)(nil),                  // 6: model.Task
-	(*Session)(nil),               // 7: model.Session
-	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),   // 9: google.protobuf.Duration
+	(Task_Link)(0),                // 2: model.Task.Link
+	(*Account)(nil),               // 3: model.Account
+	(*Organization)(nil),          // 4: model.Organization
+	(*User)(nil),                  // 5: model.User
+	(*Tag)(nil),                   // 6: model.Tag
+	(*Task)(nil),                  // 7: model.Task
+	(*Session)(nil),               // 8: model.Session
+	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 10: google.protobuf.Duration
 }
 var file_proto_model_proto_depIdxs = []int32{
-	8,  // 0: model.Account.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 1: model.Account.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 0: model.Account.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 1: model.Account.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: model.Account.type:type_name -> model.Account.Type
-	8,  // 3: model.Organization.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 4: model.Organization.updated_at:type_name -> google.protobuf.Timestamp
-	8,  // 5: model.User.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 6: model.User.updated_at:type_name -> google.protobuf.Timestamp
-	8,  // 7: model.Tag.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 8: model.Tag.updated_at:type_name -> google.protobuf.Timestamp
-	8,  // 9: model.Task.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 10: model.Task.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 3: model.Organization.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 4: model.Organization.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 5: model.User.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 6: model.User.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 7: model.Tag.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 8: model.Tag.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 9: model.Task.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 10: model.Task.updated_at:type_name -> google.protobuf.Timestamp
 	1,  // 11: model.Task.status:type_name -> model.Task.Status
-	9,  // 12: model.Task.estimated_duration:type_name -> google.protobuf.Duration
-	8,  // 13: model.Session.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 14: model.Session.updated_at:type_name -> google.protobuf.Timestamp
-	8,  // 15: model.Session.starts_at:type_name -> google.protobuf.Timestamp
-	8,  // 16: model.Session.ends_at:type_name -> google.protobuf.Timestamp
+	10, // 12: model.Task.estimated_duration:type_name -> google.protobuf.Duration
+	9,  // 13: model.Session.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 14: model.Session.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 15: model.Session.starts_at:type_name -> google.protobuf.Timestamp
+	9,  // 16: model.Session.ends_at:type_name -> google.protobuf.Timestamp
 	17, // [17:17] is the sub-list for method output_type
 	17, // [17:17] is the sub-list for method input_type
 	17, // [17:17] is the sub-list for extension type_name
@@ -822,7 +886,7 @@ func file_proto_model_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_model_proto_rawDesc), len(file_proto_model_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      3,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,

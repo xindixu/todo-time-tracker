@@ -17,9 +17,11 @@ import (
 
 // DBConnection holds the database connection and query builder
 type DBConnection struct {
-	SQLDB      *sqlx.DB
-	SQLBuilder *goqu.Database
-	GraphDB    neo4j.DriverWithContext
+	SQLDB                 *sqlx.DB
+	SQLBuilder            *goqu.Database
+	GraphDB               neo4j.DriverWithContext
+	GraphDBConnectionArgs GraphDBConnectionArgs
+	SQLDBConnectionArgs   string
 }
 
 // findProjectRoot finds the project root directory by looking for go.mod file
@@ -60,9 +62,11 @@ func InitDatabaseConnection(ctx context.Context, sqlDBConnStr string, graphDBCon
 	}
 
 	return &DBConnection{
-		SQLDB:      sqlDB,
-		SQLBuilder: sqlBuilder,
-		GraphDB:    graphDB,
+		SQLDB:                 sqlDB,
+		SQLBuilder:            sqlBuilder,
+		GraphDB:               graphDB,
+		GraphDBConnectionArgs: graphDBConnArgs,
+		SQLDBConnectionArgs:   sqlDBConnStr,
 	}, nil
 }
 
@@ -77,6 +81,7 @@ func (d *DBConnection) Close(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -87,5 +92,8 @@ func (d *DBConnection) Health(ctx context.Context) error {
 		return err
 	}
 	err = d.GraphDB.VerifyConnectivity(ctx)
+	if err != nil {
+		return err
+	}
 	return nil
 }

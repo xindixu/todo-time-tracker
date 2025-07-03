@@ -91,7 +91,7 @@ func (s *TaskAccessorTestSuite) TestCreateTask_Success() {
 	assert.NotZero(s.T(), task.UpdatedAt)
 
 	// Verify the task was actually created in the database
-	retrievedTask, err := s.accessor.GetTaskByUUID(s.ctx, testUUID.String())
+	retrievedTask, err := s.accessor.GetTaskByUUID(s.ctx, testUUID)
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), retrievedTask)
 	assert.Equal(s.T(), testUUID, retrievedTask.UUID)
@@ -157,7 +157,7 @@ func (s *TaskAccessorTestSuite) TestCreateTask_DifferentStatuses() {
 			assert.Equal(t, tc.status, task.Status)
 
 			// Verify retrieval
-			retrievedTask, err := s.accessor.GetTaskByUUID(s.ctx, testUUID.String())
+			retrievedTask, err := s.accessor.GetTaskByUUID(s.ctx, testUUID)
 			require.NoError(t, err)
 			assert.Equal(t, tc.status, retrievedTask.Status)
 		})
@@ -261,7 +261,7 @@ func (s *TaskAccessorTestSuite) TestCreateTask_MultipleTasks() {
 			assert.Equal(t, tc.status, task.Status)
 
 			// Verify retrieval
-			retrievedTask, err := s.accessor.GetTaskByUUID(s.ctx, tc.uuid.String())
+			retrievedTask, err := s.accessor.GetTaskByUUID(s.ctx, tc.uuid)
 			require.NoError(t, err)
 			assert.Equal(t, tc.uuid, retrievedTask.UUID)
 		})
@@ -295,7 +295,7 @@ func (s *TaskAccessorTestSuite) TestGetTaskByUUID_Success() {
 	task := s.accessor.CreateTestTask(s.T(), user)
 
 	// Retrieve the task
-	retrievedTask, err := s.accessor.GetTaskByUUID(s.ctx, task.UUID.String())
+	retrievedTask, err := s.accessor.GetTaskByUUID(s.ctx, task.UUID)
 
 	// Assert
 	require.NoError(s.T(), err)
@@ -316,7 +316,7 @@ func (s *TaskAccessorTestSuite) TestGetTaskByUUID_NotFound() {
 	nonExistentUUID := uuid.New()
 
 	// Try to retrieve non-existent task
-	task, err := s.accessor.GetTaskByUUID(s.ctx, nonExistentUUID.String())
+	task, err := s.accessor.GetTaskByUUID(s.ctx, nonExistentUUID)
 
 	// Should return error for non-existent task
 	assert.Error(s.T(), err)
@@ -328,7 +328,7 @@ func (s *TaskAccessorTestSuite) TestGetTaskByUUID_InvalidUUID() {
 	invalidUUID := "invalid-uuid-format"
 
 	// Try to retrieve task with invalid UUID
-	task, err := s.accessor.GetTaskByUUID(s.ctx, invalidUUID)
+	task, err := s.accessor.GetTaskByUUID(s.ctx, uuid.MustParse(invalidUUID))
 
 	// Should return error for invalid UUID format
 	assert.Error(s.T(), err)
@@ -338,7 +338,7 @@ func (s *TaskAccessorTestSuite) TestGetTaskByUUID_InvalidUUID() {
 // TestGetTaskByUUID_EmptyUUID tests retrieving a task with empty UUID
 func (s *TaskAccessorTestSuite) TestGetTaskByUUID_EmptyUUID() {
 	// Try to retrieve task with empty UUID
-	task, err := s.accessor.GetTaskByUUID(s.ctx, "")
+	task, err := s.accessor.GetTaskByUUID(s.ctx, uuid.MustParse(""))
 
 	// Should return error for empty UUID
 	assert.Error(s.T(), err)

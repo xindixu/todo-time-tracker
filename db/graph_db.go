@@ -30,3 +30,12 @@ func InitGraphDBConnection(ctx context.Context, args GraphDBConnectionArgs) (neo
 	}
 	return driver, nil
 }
+
+func (dbConnection *DBConnection) NewGraphDBSession(ctx context.Context) (neo4j.SessionWithContext, error) {
+	session := dbConnection.GraphDB.NewSession(ctx, neo4j.SessionConfig{
+		DatabaseName: dbConnection.GraphDBConnectionArgs.DBName,
+		AccessMode:   neo4j.AccessModeWrite,
+	})
+
+	return session, nil
+}

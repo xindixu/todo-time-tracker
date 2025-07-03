@@ -125,6 +125,17 @@ func (Task) TableName() string {
 	return "tasks"
 }
 
+// TaskLink represents a task link in the database
+type TaskLink string
+
+const (
+	TaskLinkInvalid     TaskLink = "INVALID"
+	TaskLinkParentOf    TaskLink = "PARENT_OF"
+	TaskLinkBlocks      TaskLink = "BLOCKS"
+	TaskLinkRelatesTo   TaskLink = "RELATES_TO"
+	TaskLinkDuplicateOf TaskLink = "DUPLICATE_OF"
+)
+
 // Session represents a session in the database
 type Session struct {
 	ID        int64      `db:"id" json:"id" goqu:"skipinsert"`

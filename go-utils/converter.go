@@ -7,6 +7,7 @@ import (
 	"todo-time-tracker/proto/go/model"
 )
 
+// -- Task --
 func TaskStatusPBToDB(status model.Task_Status) (models.TaskStatus, error) {
 	switch status {
 	case model.Task_TODO:
@@ -33,6 +34,36 @@ func TaskStatusDBToPB(status models.TaskStatus) (model.Task_Status, error) {
 	case models.TaskStatusBlocked:
 		return model.Task_BLOCKED, nil
 	default:
-		return model.Task_NONE, fmt.Errorf("invalid task status: %s", status)
+		return model.Task_STATUS_NONE, fmt.Errorf("invalid task status: %s", status)
+	}
+}
+
+func TaskLinkPBToDB(link model.Task_Link) (models.TaskLink, error) {
+	switch link {
+	case model.Task_PARENT_OF:
+		return models.TaskLinkParentOf, nil
+	case model.Task_BLOCKS:
+		return models.TaskLinkBlocks, nil
+	case model.Task_RELATES_TO:
+		return models.TaskLinkRelatesTo, nil
+	case model.Task_DUPLICATE_OF:
+		return models.TaskLinkDuplicateOf, nil
+	default:
+		return models.TaskLinkInvalid, fmt.Errorf("invalid task link: %s", link)
+	}
+}
+
+func TaskLinkDBToPB(link models.TaskLink) (model.Task_Link, error) {
+	switch link {
+	case models.TaskLinkParentOf:
+		return model.Task_PARENT_OF, nil
+	case models.TaskLinkBlocks:
+		return model.Task_BLOCKS, nil
+	case models.TaskLinkRelatesTo:
+		return model.Task_RELATES_TO, nil
+	case models.TaskLinkDuplicateOf:
+		return model.Task_DUPLICATE_OF, nil
+	default:
+		return model.Task_LINK_NONE, fmt.Errorf("invalid task link: %s", link)
 	}
 }

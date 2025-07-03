@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -70,6 +72,12 @@ func populateContext(ctx context.Context, userID, accountID int64, userName, tok
 	return ctx
 }
 
+type RequestInterceptorValidator struct {
+	UserUuid string `validate:"required,uuid"`
+	UserName string `validate:"required"`
+	Token    string `validate:"required"`
+}
+
 // RequestInterceptor is a unary server interceptor that logs requests and updates context
 func RequestInterceptor(
 	ctx context.Context,
@@ -88,13 +96,15 @@ func RequestInterceptor(
 	log.Printf("[REQUEST] Method: %s, User: %s, Time: %s, Request: %v", methodName, userName, startTime.Format(time.RFC3339), req)
 
 	// Validate that username is provided for all requests
-	if userUuid == "" || userName == "" || token == "" {
+	validate := validator.New()
+	err := validate.Struct(req)
+	if err != nil {
 		log.Printf("[ERROR] Request rejected - missing user info in context for method: %s", methodName)
-		return nil, status.Error(codes.Unauthenticated, "user info is required in context")
+		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
 	}
 
 	// Get user info from database
-	userAccount, err := accessor.GetUserAccountByUUID(ctx, userUuid)
+	userAccount, err := accessor.GetUserAccountByUUID(ctx, uuid.MustParse(userUuid))
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, utils.WrapAsStr(err, "invalid user info"))
 	}

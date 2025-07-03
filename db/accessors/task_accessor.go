@@ -2,6 +2,7 @@ package accessors
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"todo-time-tracker/db/models"
@@ -9,11 +10,13 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
 type TaskAccessor interface {
 	CreateTask(ctx context.Context, uuid uuid.UUID, name string, description string, estimatedDuration *time.Duration, status models.TaskStatus) (*models.Task, error)
-	GetTaskByUUID(ctx context.Context, uuid string) (*models.Task, error)
+	GetTaskByUUID(ctx context.Context, uuid uuid.UUID) (*models.Task, error)
+	LinkTasks(ctx context.Context, fromTaskUUID uuid.UUID, toTaskUUID uuid.UUID, link models.TaskLink) error
 }
 
 // Ensure DBAccessor implements TaskAccessor
@@ -32,8 +35,10 @@ func (a *DBAccessor) CreateTask(ctx context.Context, uuid uuid.UUID, name string
 		AccountID:         accountID,
 	}
 
-	query, args, err := a.SQLBuilder.Insert(models.TasksTable).Rows(task).
-		Returning("id", "created_at", "updated_at").ToSQL()
+	q := a.SQLBuilder.Insert(models.TasksTable).Rows(task).
+		Returning("id", "created_at", "updated_at")
+
+	query, args, err := q.ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +58,11 @@ func (a *DBAccessor) CreateTask(ctx context.Context, uuid uuid.UUID, name string
 }
 
 // GetTaskByUUID retrieves a task by its UUID
-func (a *DBAccessor) GetTaskByUUID(ctx context.Context, uuid string) (*models.Task, error) {
+func (a *DBAccessor) GetTaskByUUID(ctx context.Context, uuid uuid.UUID) (*models.Task, error) {
 	tasksTable := goqu.T(models.TasksTable)
-	query, args, err := a.SQLBuilder.From(tasksTable).Where(tasksTable.Col("uuid").Eq(uuid)).ToSQL()
+	q := a.SQLBuilder.From(tasksTable).Where(tasksTable.Col("uuid").Eq(uuid.String()))
+
+	query, args, err := q.ToSQL()
 	if err != nil {
 		return nil, err
 	}
@@ -67,4 +74,29 @@ func (a *DBAccessor) GetTaskByUUID(ctx context.Context, uuid string) (*models.Ta
 	}
 
 	return &task, nil
+}
+
+// LinkTasks links two tasks together
+func (a *DBAccessor) LinkTasks(ctx context.Context, fromTaskUUID uuid.UUID, toTaskUUID uuid.UUID, link models.TaskLink) error {
+	session, err := a.DBConnection.NewGraphDBSession(ctx)
+	if err != nil {
+		return err
+	}
+
+	q := fmt.Sprintf(`
+		MERGE (from:Task {uuid: $fromTaskUUID})
+		MERGE (to:Task {uuid: $toTaskUUID})
+		MERGE (from)-[:%s]->(to)
+	`, link)
+
+	_, err = session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		return tx.Run(ctx, q,
+			map[string]any{
+				"fromTaskUUID": fromTaskUUID.String(),
+				"toTaskUUID":   toTaskUUID.String(),
+			},
+		)
+	})
+
+	return err
 }

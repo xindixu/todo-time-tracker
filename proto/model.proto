@@ -58,11 +58,19 @@ message Tag {
 // Task message
 message Task {
   enum Status {
-    NONE = 0;
+    STATUS_NONE = 0;
     TODO = 1;
     IN_PROGRESS = 2;
     DONE = 3;
     BLOCKED = 4;
+  }
+
+  enum Link {
+    LINK_NONE = 0;
+    PARENT_OF = 1;
+    BLOCKS = 2;
+    RELATES_TO = 3;
+    DUPLICATE_OF = 4;
   }
 
   int64 id = 1;

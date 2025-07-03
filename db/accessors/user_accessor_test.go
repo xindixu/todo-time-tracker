@@ -82,7 +82,7 @@ func (s *UserAccessorTestSuite) TestCreateUser_Success() {
 	assert.NotZero(s.T(), user.UpdatedAt)
 
 	// Verify the user was actually created in the database
-	userAccount, err := s.accessor.GetUserAccountByUUID(s.ctx, testUUID.String())
+	userAccount, err := s.accessor.GetUserAccountByUUID(s.ctx, testUUID)
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), userAccount)
 	assert.Equal(s.T(), testUUID, userAccount.User.UUID)

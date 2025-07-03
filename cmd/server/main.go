@@ -30,6 +30,7 @@ func main() {
 		DBUri:      os.Getenv("GRAPH_DB_URI"),
 		DBUser:     os.Getenv("GRAPH_DB_USER"),
 		DBPassword: os.Getenv("GRAPH_DB_PASSWORD"),
+		DBName:     os.Getenv("GRAPH_DB_NAME"),
 	}
 
 	database, err := db.InitDatabaseConnection(ctx, sqlDBConnStr, graphDBConnArgs)
