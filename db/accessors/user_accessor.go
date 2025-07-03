@@ -93,24 +93,24 @@ func (a *DBAccessor) GetUserAccountByUUID(ctx context.Context, uuid uuid.UUID) (
 	usersTable := goqu.T(models.UsersTable)
 	accountsTable := goqu.T(models.AccountsTable)
 
-	q := a.SQLBuilder.Select(
-		// User
-		usersTable.Col("id").As("user_id"),
-		usersTable.Col("uuid").As("user_uuid"),
-		usersTable.Col("created_at").As("user_created_at"),
-		usersTable.Col("updated_at").As("user_updated_at"),
-		usersTable.Col("account_id").As("user_account_id"),
-		usersTable.Col("name").As("user_name"),
-		usersTable.Col("email").As("user_email"),
-		usersTable.Col("password").As("user_password"),
-		// Account
-		accountsTable.Col("id").As("account_id"),
-		accountsTable.Col("uuid").As("account_uuid"),
-		accountsTable.Col("created_at").As("account_created_at"),
-		accountsTable.Col("updated_at").As("account_updated_at"),
-		accountsTable.Col("type").As("account_type"),
-	).
-		From(usersTable).
+	q := a.SQLBuilder.From(usersTable).
+		Select(
+			// User
+			usersTable.Col("id").As("user_id"),
+			usersTable.Col("uuid").As("user_uuid"),
+			usersTable.Col("created_at").As("user_created_at"),
+			usersTable.Col("updated_at").As("user_updated_at"),
+			usersTable.Col("account_id").As("user_account_id"),
+			usersTable.Col("name").As("user_name"),
+			usersTable.Col("email").As("user_email"),
+			usersTable.Col("password").As("user_password"),
+			// Account
+			accountsTable.Col("id").As("account_id"),
+			accountsTable.Col("uuid").As("account_uuid"),
+			accountsTable.Col("created_at").As("account_created_at"),
+			accountsTable.Col("updated_at").As("account_updated_at"),
+			accountsTable.Col("type").As("account_type"),
+		).
 		Join(accountsTable, goqu.On(usersTable.Col("account_id").Eq(accountsTable.Col("id")))).
 		Where(usersTable.Col("uuid").Eq(uuid.String()))
 

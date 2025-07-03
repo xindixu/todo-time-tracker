@@ -14,12 +14,12 @@ import (
 )
 
 type TestDBAccessor struct {
-	*accessors.DBAccessor
+	accessors.DBAccessor
 }
 
 func NewTestDBAccessor(dbConnection *db.DBConnection) *TestDBAccessor {
 	return &TestDBAccessor{
-		accessors.NewDBAccessor(dbConnection),
+		*accessors.NewDBAccessor(dbConnection),
 	}
 }
 

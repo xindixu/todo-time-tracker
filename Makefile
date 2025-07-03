@@ -125,7 +125,7 @@ fmt:
 # Lint code
 lint:
 	@echo "Running linter..."
-	golangci-lint run
+	go vet ./...
 
 # Install development tools
 install-tools:

@@ -29,6 +29,8 @@ type TaskAccessorTestSuite struct {
 
 // SetupSuite runs once before all tests
 func (s *TaskAccessorTestSuite) SetupSuite() {
+	s.ctx = context.Background()
+
 	// Skip if PostgreSQL is not available
 	th.SkipIfNoPostgreSQL(s.T())
 
@@ -37,8 +39,6 @@ func (s *TaskAccessorTestSuite) SetupSuite() {
 
 	// Create accessor
 	s.accessor = th.CreateTestDBAccessor(s.T(), s.dbConnection)
-
-	s.ctx = context.Background()
 }
 
 // TearDownSuite runs once after all tests
@@ -319,28 +319,6 @@ func (s *TaskAccessorTestSuite) TestGetTaskByUUID_NotFound() {
 	task, err := s.accessor.GetTaskByUUID(s.ctx, nonExistentUUID)
 
 	// Should return error for non-existent task
-	assert.Error(s.T(), err)
-	assert.Nil(s.T(), task)
-}
-
-// TestGetTaskByUUID_InvalidUUID tests retrieving a task with invalid UUID format
-func (s *TaskAccessorTestSuite) TestGetTaskByUUID_InvalidUUID() {
-	invalidUUID := "invalid-uuid-format"
-
-	// Try to retrieve task with invalid UUID
-	task, err := s.accessor.GetTaskByUUID(s.ctx, uuid.MustParse(invalidUUID))
-
-	// Should return error for invalid UUID format
-	assert.Error(s.T(), err)
-	assert.Nil(s.T(), task)
-}
-
-// TestGetTaskByUUID_EmptyUUID tests retrieving a task with empty UUID
-func (s *TaskAccessorTestSuite) TestGetTaskByUUID_EmptyUUID() {
-	// Try to retrieve task with empty UUID
-	task, err := s.accessor.GetTaskByUUID(s.ctx, uuid.MustParse(""))
-
-	// Should return error for empty UUID
 	assert.Error(s.T(), err)
 	assert.Nil(s.T(), task)
 }

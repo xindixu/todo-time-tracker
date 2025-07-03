@@ -10,13 +10,13 @@ import (
 
 // DBAccessor is the main database accessor that implements all model accessors
 type DBAccessor struct {
-	*db.DBConnection
+	db.DBConnection
 }
 
 // NewDBAccessor creates a new DBAccessor
 func NewDBAccessor(dbConnection *db.DBConnection) *DBAccessor {
 	return &DBAccessor{
-		DBConnection: dbConnection,
+		*dbConnection,
 	}
 }
 
