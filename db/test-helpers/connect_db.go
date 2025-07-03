@@ -1,7 +1,6 @@
-package accessors
+package testhelpers_test
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -9,10 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"todo-time-tracker/db"
-
+	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/stretchr/testify/require"
+
+	"todo-time-tracker/db"
 )
 
 // TestDBConfig holds configuration for test database
@@ -59,8 +61,8 @@ func DefaultTestDBConfig() *TestDBConfig {
 	return config
 }
 
-// IsPostgreSQLAvailable checks if PostgreSQL is available for testing
-func IsPostgreSQLAvailable(t *testing.T) bool {
+// isPostgreSQLAvailable checks if PostgreSQL is available for testing
+func isPostgreSQLAvailable(t *testing.T) bool {
 	config := DefaultTestDBConfig()
 
 	// Try to connect to default postgres database
@@ -80,13 +82,7 @@ func IsPostgreSQLAvailable(t *testing.T) bool {
 	return true
 }
 
-// CreateTestDB creates a test database and returns connection
-func CreateTestDB(t *testing.T, config *TestDBConfig) (*db.DBConnection, func()) {
-	if config == nil {
-		config = DefaultTestDBConfig()
-	}
-
-	// -- SQL DB --
+func createTestSQLDB(t *testing.T, config *TestDBConfig) (*sqlx.DB, *goqu.Database) {
 	// Connect to default postgres database to create test database
 	defaultConnStr := fmt.Sprintf("postgres://%s:%s@%s:%s/postgres?sslmode=disable",
 		config.SQLDBUser, config.SQLDBPassword, config.SQLDBHost, config.SQLDBPort)
@@ -104,18 +100,33 @@ func CreateTestDB(t *testing.T, config *TestDBConfig) (*db.DBConnection, func())
 	require.NoError(t, err, "Failed to create test database")
 
 	// Connect to test database
-	ctx := context.Background()
-	sqlDB, sqlBuilder, err := db.InitSQLDBConnection(ctx, config.SQLDBConnStr)
+	sqlDB, sqlBuilder, err := db.InitSQLDBConnection(t.Context(), config.SQLDBConnStr)
 	require.NoError(t, err, "Failed to initialize test database connection")
 
-	// -- GRAPH DB --
-	graphDB, err := db.InitGraphDBConnection(ctx, db.GraphDBConnectionArgs{
+	return sqlDB, sqlBuilder
+}
+
+func createTestGraphDB(t *testing.T, config *TestDBConfig) neo4j.DriverWithContext {
+	graphDB, err := db.InitGraphDBConnection(t.Context(), db.GraphDBConnectionArgs{
 		DBUri:      config.GraphDBUri,
 		DBUser:     config.GraphDBUser,
 		DBPassword: config.GraphDBPassword,
 		DBName:     config.GraphDBName,
 	})
 	require.NoError(t, err, "Failed to initialize graph database connection")
+
+	return graphDB
+}
+
+// CreateTestDB creates a test database and returns connection
+func CreateTestDB(t *testing.T, config *TestDBConfig) (*db.DBConnection, func()) {
+	if config == nil {
+		config = DefaultTestDBConfig()
+	}
+
+	sqlDB, sqlBuilder := createTestSQLDB(t, config)
+
+	graphDB := createTestGraphDB(t, config)
 
 	dbConnection := &db.DBConnection{
 		SQLDB:      sqlDB,
@@ -124,13 +135,13 @@ func CreateTestDB(t *testing.T, config *TestDBConfig) (*db.DBConnection, func())
 	}
 
 	// Run migrations
-	err = dbConnection.SQLDBMigrate()
+	err := dbConnection.SQLDBMigrate()
 	require.NoError(t, err, "Failed to run database migrations")
 
 	// Return cleanup function
 	cleanup := func() {
 		log.Println("Cleaning up test database")
-		err := dbConnection.Close(ctx)
+		err := dbConnection.Close(t.Context())
 		if err != nil {
 			t.Logf("Warning: Failed to close test database for cleanup: %v", err)
 		}
@@ -191,7 +202,11 @@ func CleanupTestSQLDB(t *testing.T, dbConnection *db.DBConnection) {
 
 // SkipIfNoPostgreSQL skips the test if PostgreSQL is not available
 func SkipIfNoPostgreSQL(t *testing.T) {
-	if !IsPostgreSQLAvailable(t) {
+	if !isPostgreSQLAvailable(t) {
 		t.Skip("PostgreSQL not available, skipping test")
 	}
+}
+
+func CreateTestDBAccessor(t *testing.T, dbConnection *db.DBConnection) *TestDBAccessor {
+	return NewTestDBAccessor(dbConnection)
 }

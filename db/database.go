@@ -9,11 +9,10 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
-
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 // DBConnection holds the database connection and query builder

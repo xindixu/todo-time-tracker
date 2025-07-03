@@ -1,4 +1,4 @@
-package accessors
+package accessors_test
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"todo-time-tracker/db"
 	"todo-time-tracker/db/models"
 
+	th "todo-time-tracker/db/test-helpers"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,21 +20,24 @@ import (
 // UserAccessorTestSuite holds the test suite for user accessor tests
 type UserAccessorTestSuite struct {
 	suite.Suite
+	ctx          context.Context
 	dbConnection *db.DBConnection
-	accessor     *DBAccessor
+	accessor     *th.TestDBAccessor
 	cleanup      func()
 }
 
 // SetupSuite runs once before all tests
 func (s *UserAccessorTestSuite) SetupSuite() {
 	// Skip if PostgreSQL is not available
-	SkipIfNoPostgreSQL(s.T())
+	th.SkipIfNoPostgreSQL(s.T())
 
 	// Create test database
-	s.dbConnection, s.cleanup = CreateTestDB(s.T(), nil)
+	s.dbConnection, s.cleanup = th.CreateTestDB(s.T(), nil)
 
 	// Create accessor
-	s.accessor = NewDBAccessor(s.dbConnection)
+	s.accessor = th.CreateTestDBAccessor(s.T(), s.dbConnection)
+
+	s.ctx = context.Background()
 }
 
 // TearDownSuite runs once after all tests
@@ -45,35 +50,12 @@ func (s *UserAccessorTestSuite) TearDownSuite() {
 // SetupTest runs before each test
 func (s *UserAccessorTestSuite) SetupTest() {
 	// Clean up any existing data before each test
-	CleanupTestSQLDB(s.T(), s.dbConnection)
+	th.CleanupTestSQLDB(s.T(), s.dbConnection)
 }
 
 // TestMain runs the test suite
 func TestUserAccessorSuite(t *testing.T) {
 	suite.Run(t, new(UserAccessorTestSuite))
-}
-
-// TestCreateUser_InterfaceCompliance_Simple tests that DBAccessor implements UserAccessor interface
-// This test doesn't require a database connection
-func TestCreateUser_InterfaceCompliance_Simple(t *testing.T) {
-	// This test ensures that DBAccessor implements the UserAccessor interface
-	var _ UserAccessor = (*DBAccessor)(nil)
-
-	// If this compiles, the interface is properly implemented
-	t.Log("DBAccessor properly implements UserAccessor interface")
-}
-
-// TestNewDBAccessor tests the NewDBAccessor function
-func TestNewDBAccessor(t *testing.T) {
-	// Create a mock database connection
-	mockDB := &db.DBConnection{}
-
-	// Create accessor
-	accessor := NewDBAccessor(mockDB)
-
-	// Assert
-	assert.NotNil(t, accessor)
-	assert.Equal(t, mockDB, accessor.DBConnection)
 }
 
 // TestCreateUser_Success tests successful user creation
@@ -85,8 +67,7 @@ func (s *UserAccessorTestSuite) TestCreateUser_Success() {
 	testPassword := "password123"
 
 	// Execute
-	ctx := context.Background()
-	user, err := s.accessor.CreateUser(ctx, testUUID, testName, testEmail, testPassword)
+	user, err := s.accessor.CreateUser(s.ctx, testUUID, testName, testEmail, testPassword)
 
 	// Assert
 	require.NoError(s.T(), err)
@@ -101,7 +82,7 @@ func (s *UserAccessorTestSuite) TestCreateUser_Success() {
 	assert.NotZero(s.T(), user.UpdatedAt)
 
 	// Verify the user was actually created in the database
-	userAccount, err := s.accessor.GetUserAccountByUUID(ctx, testUUID.String())
+	userAccount, err := s.accessor.GetUserAccountByUUID(s.ctx, testUUID.String())
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), userAccount)
 	assert.Equal(s.T(), testUUID, userAccount.User.UUID)
@@ -124,8 +105,7 @@ func (s *UserAccessorTestSuite) TestCreateUser_DuplicateUUID() {
 	testEmail1 := "john@example.com"
 	testPassword1 := "password123"
 
-	ctx := context.Background()
-	user1, err := s.accessor.CreateUser(ctx, testUUID, testName1, testEmail1, testPassword1)
+	user1, err := s.accessor.CreateUser(s.ctx, testUUID, testName1, testEmail1, testPassword1)
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), user1)
 
@@ -134,7 +114,7 @@ func (s *UserAccessorTestSuite) TestCreateUser_DuplicateUUID() {
 	testEmail2 := "jane@example.com"
 	testPassword2 := "password456"
 
-	user2, err := s.accessor.CreateUser(ctx, testUUID, testName2, testEmail2, testPassword2)
+	user2, err := s.accessor.CreateUser(s.ctx, testUUID, testName2, testEmail2, testPassword2)
 
 	// Should fail due to unique constraint on UUID
 	assert.Error(s.T(), err)
@@ -149,8 +129,7 @@ func (s *UserAccessorTestSuite) TestCreateUser_DuplicateEmail() {
 	testEmail := "john@example.com" // Same email
 	testPassword1 := "password123"
 
-	ctx := context.Background()
-	user1, err := s.accessor.CreateUser(ctx, testUUID1, testName1, testEmail, testPassword1)
+	user1, err := s.accessor.CreateUser(s.ctx, testUUID1, testName1, testEmail, testPassword1)
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), user1)
 
@@ -159,7 +138,7 @@ func (s *UserAccessorTestSuite) TestCreateUser_DuplicateEmail() {
 	testName2 := "Jane Doe"
 	testPassword2 := "password456"
 
-	user2, err := s.accessor.CreateUser(ctx, testUUID2, testName2, testEmail, testPassword2)
+	user2, err := s.accessor.CreateUser(s.ctx, testUUID2, testName2, testEmail, testPassword2)
 
 	// Should fail due to unique constraint on email
 	assert.Error(s.T(), err)
@@ -180,11 +159,9 @@ func (s *UserAccessorTestSuite) TestCreateUser_EmptyFields() {
 		{"empty password", uuid.New(), "John Doe", "test@example.com", ""},
 	}
 
-	ctx := context.Background()
-
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
-			user, err := s.accessor.CreateUser(ctx, tc.uuid, tc.userName, tc.email, tc.password)
+			user, err := s.accessor.CreateUser(s.ctx, tc.uuid, tc.userName, tc.email, tc.password)
 
 			// Should fail due to NOT NULL constraints
 			assert.Error(t, err)
@@ -229,11 +206,9 @@ func (s *UserAccessorTestSuite) TestCreateUser_MultipleUsers() {
 		{uuid.New(), "Charlie Brown", "charlie@example.com", "password3"},
 	}
 
-	ctx := context.Background()
-
 	for i, userData := range users {
 		s.T().Run(fmt.Sprintf("user_%d", i), func(t *testing.T) {
-			user, err := s.accessor.CreateUser(ctx, userData.uuid, userData.name, userData.email, userData.password)
+			user, err := s.accessor.CreateUser(s.ctx, userData.uuid, userData.name, userData.email, userData.password)
 
 			require.NoError(t, err)
 			assert.NotNil(t, user)
@@ -262,10 +237,9 @@ func (s *UserAccessorTestSuite) TestCreateUser_TransactionRollback() {
 	// the transaction is properly rolled back and no data is left in the database
 
 	// Get initial counts
-	ctx := context.Background()
-	initialUserCount, err := s.accessor.CountModels(ctx, models.UsersTable)
+	initialUserCount, err := s.accessor.CountModels(s.ctx, models.UsersTable)
 	require.NoError(s.T(), err)
-	initialAccountCount, err := s.accessor.CountModels(ctx, models.AccountsTable)
+	initialAccountCount, err := s.accessor.CountModels(s.ctx, models.AccountsTable)
 	require.NoError(s.T(), err)
 
 	// Create a user successfully first
@@ -274,7 +248,7 @@ func (s *UserAccessorTestSuite) TestCreateUser_TransactionRollback() {
 	testEmail1 := "john@example.com"
 	testPassword1 := "password123"
 
-	user1, err := s.accessor.CreateUser(ctx, testUUID1, testName1, testEmail1, testPassword1)
+	user1, err := s.accessor.CreateUser(s.ctx, testUUID1, testName1, testEmail1, testPassword1)
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), user1)
 
@@ -284,14 +258,14 @@ func (s *UserAccessorTestSuite) TestCreateUser_TransactionRollback() {
 	testEmail2 := testEmail1 // Same email as first user
 	testPassword2 := "password456"
 
-	user2, err := s.accessor.CreateUser(ctx, testUUID2, testName2, testEmail2, testPassword2)
+	user2, err := s.accessor.CreateUser(s.ctx, testUUID2, testName2, testEmail2, testPassword2)
 	assert.Error(s.T(), err)
 	assert.Nil(s.T(), user2)
 
 	// Verify that only the first user exists (transaction was rolled back)
-	finalUserCount, err := s.accessor.CountModels(ctx, models.UsersTable)
+	finalUserCount, err := s.accessor.CountModels(s.ctx, models.UsersTable)
 	require.NoError(s.T(), err)
-	finalAccountCount, err := s.accessor.CountModels(ctx, models.AccountsTable)
+	finalAccountCount, err := s.accessor.CountModels(s.ctx, models.AccountsTable)
 	require.NoError(s.T(), err)
 
 	assert.Equal(s.T(), initialUserCount+1, finalUserCount)       // Only first user was added
@@ -302,13 +276,4 @@ func (s *UserAccessorTestSuite) TestCreateUser_TransactionRollback() {
 	err = s.dbConnection.SQLDB.Get(&count, "SELECT COUNT(*) FROM users WHERE uuid = $1", testUUID2)
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), 0, count)
-}
-
-// TestCreateUser_InterfaceCompliance tests that DBAccessor implements UserAccessor interface
-func (s *UserAccessorTestSuite) TestCreateUser_InterfaceCompliance() {
-	// This test ensures that DBAccessor implements the UserAccessor interface
-	var _ UserAccessor = (*DBAccessor)(nil)
-
-	// If this compiles, the interface is properly implemented
-	s.T().Log("DBAccessor properly implements UserAccessor interface")
 }
