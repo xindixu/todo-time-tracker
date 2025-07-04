@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fixnum/fixnum.dart';
+import 'package:ui/rpc/google/protobuf/timestamp.pb.dart';
+import 'package:ui/rpc/proto/model.pb.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,6 +13,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    var model = Task(
+      id: Int64(1),
+      uuid: '123',
+      createdAt: Timestamp(seconds: Int64(1), nanos: 1),
+      updatedAt: Timestamp(seconds: Int64(1), nanos: 1),
+      name: 'Task 1',
+    );
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -30,7 +40,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: model.name),
     );
   }
 }

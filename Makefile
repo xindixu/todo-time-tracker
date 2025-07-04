@@ -1,4 +1,4 @@
-.PHONY: build build-server build-cli test clean lint fmt install-tools run run-server run-cli proto-gen help
+.PHONY: build build-server build-cli test clean lint fmt install-tools run run-server run-cli proto-gen proto-gen-go proto-gen-dart help
 
 # Binary names
 CLI_BINARY_NAME=ttt
@@ -7,10 +7,20 @@ CLI_BINARY_PATH=./bin/$(CLI_BINARY_NAME)
 SERVER_BINARY_PATH=./bin/$(SERVER_BINARY_NAME)
 
 # Generate protobuf code
-proto-gen:
-	@echo "Generating protobuf code..."
+proto-gen: proto-gen-go proto-gen-dart
+	@echo "Generated protobuf code for Go and Dart"
+
+# Generate Go protobuf code
+proto-gen-go:
+	@echo "Generating Go protobuf code..."
 	mkdir -p proto/go
 	protoc --go_out=. --go-grpc_out=. --go_opt=module=todo-time-tracker --go-grpc_opt=module=todo-time-tracker --proto_path=. proto/*.proto
+
+# Generate Dart protobuf code
+proto-gen-dart:
+	@echo "Generating Dart protobuf code..."
+	mkdir -p client/ui/lib/rpc
+	protoc --dart_out=grpc:client/ui/lib/rpc --proto_path=. --proto_path=/opt/homebrew/Cellar/protobuf/21.12/include proto/*.proto
 
 # SQL DB
 SQL_DB_SUPER_USER=postgres
@@ -140,7 +150,9 @@ install: build
 # Show help
 help:
 	@echo "Available targets:"
-	@echo "  proto-gen              Generate protobuf Go code"
+	@echo "  proto-gen              Generate protobuf code for Go and Dart"
+	@echo "  proto-gen-go           Generate protobuf Go code only"
+	@echo "  proto-gen-dart         Generate protobuf Dart code only"
 	@echo "  build                  Build both CLI and server"
 	@echo "  build-cli              Build the CLI application"
 	@echo "  run-cli                Build and run the CLI application"
