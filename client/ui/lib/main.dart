@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:ui/rpc/google/protobuf/timestamp.pb.dart';
 import 'package:ui/rpc/proto/model.pb.dart';
+import 'package:ui/rpc/client.dart';
 
 void main() {
+
+  TTTService().init();
   runApp(const MyApp());
 }
 
