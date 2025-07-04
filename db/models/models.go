@@ -136,6 +136,15 @@ const (
 	TaskLinkDuplicateOf TaskLink = "DUPLICATE_OF"
 )
 
+func (t TaskLink) IsValid() bool {
+	switch t {
+	case TaskLinkParentOf, TaskLinkBlocks, TaskLinkRelatesTo, TaskLinkDuplicateOf:
+		return true
+	default:
+		return false
+	}
+}
+
 // Session represents a session in the database
 type Session struct {
 	ID        int64      `db:"id" json:"id" goqu:"skipinsert"`

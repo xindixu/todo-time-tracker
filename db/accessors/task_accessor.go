@@ -11,6 +11,8 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type TaskAccessor interface {
@@ -79,6 +81,13 @@ func (a *DBAccessor) GetTaskByUUID(ctx context.Context, uuid uuid.UUID) (*models
 
 // CreateTaskLinks links two tasks together
 func (a *DBAccessor) CreateTaskLinks(ctx context.Context, fromTaskUUID uuid.UUID, toTaskUUID uuid.UUID, link models.TaskLink) error {
+	if !link.IsValid() {
+		return status.Errorf(codes.InvalidArgument, "invalid link type: %s", link)
+	}
+	if fromTaskUUID == toTaskUUID {
+		return status.Errorf(codes.InvalidArgument, "cannot link task to itself")
+	}
+
 	session, err := a.DBConnection.NewGraphDBSession(ctx)
 	if err != nil {
 		return err
@@ -113,6 +122,7 @@ func (a *DBAccessor) GetTaskLinks(ctx context.Context, fromTaskUUID uuid.UUID, t
 
 	q := `
 		MATCH (from:Task {uuid: $fromTaskUUID})-[r]->(to:Task {uuid: $toTaskUUID})
+		ORDER BY type(r)
 		RETURN type(r) as relationshipType
 	`
 

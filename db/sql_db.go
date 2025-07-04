@@ -17,7 +17,7 @@ import (
 
 // InitSQLDBConnection initializes the PostgreSQL database connection
 func InitSQLDBConnection(ctx context.Context, dbConnStr string) (*sqlx.DB, *goqu.Database, error) {
-	log.Println("Initializing PostgreSQL database...")
+	log.Println("Initializing PostgreSQL DB connection...")
 
 	// Open PostgreSQL database
 	db, err := sqlx.Connect("postgres", dbConnStr)

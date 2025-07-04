@@ -17,7 +17,7 @@ type GraphDBConnectionArgs struct {
 
 // InitGraphDBConnection initializes the Neo4j database connection
 func InitGraphDBConnection(ctx context.Context, args GraphDBConnectionArgs) (neo4j.DriverWithContext, error) {
-	log.Println("Initializing graph database connection...")
+	log.Println("Initializing Neo4j DB connection...")
 
 	driver, err := neo4j.NewDriverWithContext(args.DBUri, neo4j.BasicAuth(args.DBUser, args.DBPassword, ""))
 	if err != nil {
