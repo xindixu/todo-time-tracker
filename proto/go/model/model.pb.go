@@ -822,7 +822,7 @@ const file_proto_model_proto_rawDesc = "" +
 	"\ttask_uuid\x18\x04 \x01(\tR\btaskUuid\x12\x1b\n" +
 	"\tuser_uuid\x18\x05 \x01(\tR\buserUuid\x127\n" +
 	"\tstarts_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\bstartsAt\x123\n" +
-	"\aends_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\x06endsAtB\x10Z\x0eproto/go/modelb\x06proto3"
+	"\aends_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\x06endsAtB\"Z todo-time-tracker/proto/go/modelb\x06proto3"
 
 var (
 	file_proto_model_proto_rawDescOnce sync.Once

@@ -10,7 +10,7 @@ SERVER_BINARY_PATH=./bin/$(SERVER_BINARY_NAME)
 proto-gen:
 	@echo "Generating protobuf code..."
 	mkdir -p proto/go
-	protoc --go_out=. --go-grpc_out=. proto/*.proto
+	protoc --go_out=. --go-grpc_out=. --go_opt=module=todo-time-tracker --go-grpc_opt=module=todo-time-tracker --proto_path=. proto/*.proto
 
 # SQL DB
 SQL_DB_SUPER_USER=postgres

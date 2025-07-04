@@ -7,15 +7,14 @@
 package ttt
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	reflect "reflect"
 	sync "sync"
 	context "todo-time-tracker/proto/go/context"
 	model "todo-time-tracker/proto/go/model"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -1004,7 +1003,7 @@ const file_proto_ttt_service_proto_rawDesc = "" +
 	"\n" +
 	"CreateTask\x12\x12.ttt.CreateTaskReq\x1a\x13.ttt.CreateTaskResp\x12,\n" +
 	"\aGetTask\x12\x0f.ttt.GetTaskReq\x1a\x10.ttt.GetTaskResp\x122\n" +
-	"\tLinkTasks\x12\x11.ttt.LinkTasksReq\x1a\x12.ttt.LinkTasksRespB\x0eZ\fproto/go/tttb\x06proto3"
+	"\tLinkTasks\x12\x11.ttt.LinkTasksReq\x1a\x12.ttt.LinkTasksRespB Z\x1etodo-time-tracker/proto/go/tttb\x06proto3"
 
 var (
 	file_proto_ttt_service_proto_rawDescOnce sync.Once

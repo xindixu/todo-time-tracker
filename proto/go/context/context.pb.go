@@ -90,7 +90,7 @@ const file_proto_context_proto_rawDesc = "" +
 	"\aContext\x12\x1b\n" +
 	"\tuser_uuid\x18\x01 \x01(\tR\buserUuid\x12\x1b\n" +
 	"\tuser_name\x18\x02 \x01(\tR\buserName\x12\x14\n" +
-	"\x05token\x18\x03 \x01(\tR\x05tokenB\x12Z\x10proto/go/contextb\x06proto3"
+	"\x05token\x18\x03 \x01(\tR\x05tokenB$Z\"todo-time-tracker/proto/go/contextb\x06proto3"
 
 var (
 	file_proto_context_proto_rawDescOnce sync.Once

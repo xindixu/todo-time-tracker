@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package model;
 
-option go_package = "proto/go/model";
+option go_package = "todo-time-tracker/proto/go/model";
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";

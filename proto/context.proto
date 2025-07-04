@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package context;
 
-option go_package = "proto/go/context";
+option go_package = "todo-time-tracker/proto/go/context";
 
 // Context message
 message Context {
