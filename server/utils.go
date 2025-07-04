@@ -15,4 +15,4 @@ func getUsername(ctx context.Context) string {
 	return "unknown" // This should not happen due to interceptor validation
 }
 
-var validate = validator.New()
+var validate = validator.New(validator.WithRequiredStructEnabled())

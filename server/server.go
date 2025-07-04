@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -22,12 +21,12 @@ import (
 // TTTServer implements the TTTService gRPC service
 type TTTServer struct {
 	ttt.UnimplementedTTTServiceServer
-	db       *db.DBConnection
+	db       *db.Connection
 	accessor *accessors.DBAccessor
 }
 
 // NewTTTServer creates a new TTTServer instance with database connection and accessor
-func NewTTTServer(db *db.DBConnection, accessor *accessors.DBAccessor) *TTTServer {
+func NewTTTServer(db *db.Connection, accessor *accessors.DBAccessor) *TTTServer {
 	return &TTTServer{
 		db:       db,
 		accessor: accessor,
@@ -72,14 +71,14 @@ func populateContext(ctx context.Context, userID, accountID int64, userName, tok
 	return ctx
 }
 
-type RequestInterceptorValidator struct {
-	UserUuid string `validate:"required,uuid"`
+type requestInterceptorValidator struct {
+	UserUUID string `validate:"required,uuid"`
 	UserName string `validate:"required"`
 	Token    string `validate:"required"`
 }
 
-// RequestInterceptor is a unary server interceptor that logs requests and updates context
-func RequestInterceptor(
+// requestInterceptor is a unary server interceptor that logs requests and updates context
+func requestInterceptor(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -90,21 +89,24 @@ func RequestInterceptor(
 
 	// Extract request details for logging
 	methodName := info.FullMethod
-	userUuid, userName, token := extractInfoFromRequest(req)
+	userUUID, userName, token := extractInfoFromRequest(req)
 
 	// Log incoming request
 	log.Printf("[REQUEST] Method: %s, User: %s, Time: %s, Request: %v", methodName, userName, startTime.Format(time.RFC3339), req)
 
-	// Validate that username is provided for all requests
-	validate := validator.New()
-	err := validate.Struct(req)
+	validator := requestInterceptorValidator{
+		UserUUID: userUUID,
+		UserName: userName,
+		Token:    token,
+	}
+	err := validate.Struct(validator)
 	if err != nil {
 		log.Printf("[ERROR] Request rejected - missing user info in context for method: %s", methodName)
 		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
 	}
 
 	// Get user info from database
-	userAccount, err := accessor.GetUserAccountByUUID(ctx, uuid.MustParse(userUuid))
+	userAccount, err := accessor.GetUserAccountByUUID(ctx, uuid.MustParse(userUUID))
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, utils.WrapAsStr(err, "invalid user info"))
 	}
@@ -137,7 +139,7 @@ func RequestInterceptor(
 func GetServerOptions(accessor *accessors.DBAccessor) []grpc.ServerOption {
 	return []grpc.ServerOption{
 		grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-			return RequestInterceptor(ctx, req, info, handler, accessor)
+			return requestInterceptor(ctx, req, info, handler, accessor)
 		}),
 	}
 }

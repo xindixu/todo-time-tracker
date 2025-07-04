@@ -31,7 +31,7 @@ func createTestSQLDB(t *testing.T) (*sqlx.DB, *goqu.Database) {
 	return sqlDB, sqlBuilder
 }
 
-func dropTestSQLDB(t *testing.T, dbConnection *db.DBConnection) {
+func dropTestSQLDB(t *testing.T, dbConnection *db.Connection) {
 	// Connect to default postgres database to create test database
 	defaultConnStr := fmt.Sprintf("postgres://%s:%s@%s:%s/postgres?sslmode=disable",
 		config.SQLDBUser, config.SQLDBPassword, config.SQLDBHost, config.SQLDBPort)
@@ -46,7 +46,7 @@ func dropTestSQLDB(t *testing.T, dbConnection *db.DBConnection) {
 }
 
 // CleanupTestSQLDB removes all test data from the database
-func CleanupTestSQLDB(t *testing.T, dbConnection *db.DBConnection) {
+func CleanupTestSQLDB(t *testing.T, dbConnection *db.Connection) {
 	// Delete in reverse order of dependencies
 	tables := []string{
 		"task_tags",

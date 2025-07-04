@@ -1,7 +1,9 @@
 package goutils
 
+// ContextKey is a type for context keys
 type ContextKey string
 
+// ContextKeys
 const (
 	ContextKeyAccountID   ContextKey = "account_id"
 	ContextKeyUserID      ContextKey = "user_id"

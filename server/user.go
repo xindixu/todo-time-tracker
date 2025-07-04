@@ -13,19 +13,22 @@ import (
 	"todo-time-tracker/proto/go/ttt"
 )
 
+type createUserReqValidator struct {
+	Name     string `validate:"required,min=3,max=255"`
+	Email    string `validate:"required,email,min=1,max=255"`
+	Password string `validate:"required,min=8,max=255"`
+}
+
+// CreateUser creates a new user
 func (s *TTTServer) CreateUser(ctx context.Context, req *ttt.CreateUserReq) (*ttt.CreateUserResp, error) {
-
-	// Validate input
-	if req.Name == "" {
-		return nil, status.Error(codes.InvalidArgument, "name cannot be empty")
+	validator := createUserReqValidator{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
 	}
-
-	if req.Email == "" {
-		return nil, status.Error(codes.InvalidArgument, "email cannot be empty")
-	}
-
-	if req.Password == "" {
-		return nil, status.Error(codes.InvalidArgument, "password cannot be empty")
+	err := validate.Struct(validator)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
 	}
 
 	// Generate UUID for the new user

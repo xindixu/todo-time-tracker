@@ -136,6 +136,7 @@ fmt:
 lint:
 	@echo "Running linter..."
 	go vet ./...
+	golint ./...
 
 # Install development tools
 install-tools:

@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 
 	"github.com/doug-martin/goqu/v9"
-	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	_ "github.com/doug-martin/goqu/v9/dialect/postgres" // make sure to import the postgres dialect for goqu
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // make sure to import the postgres driver
 
 	migrate "github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/source/file" // make sure to import the file source for migrations
 )
 
 // InitSQLDBConnection initializes the PostgreSQL database connection
@@ -43,11 +43,11 @@ func InitSQLDBConnection(ctx context.Context, dbConnStr string) (*sqlx.DB, *goqu
 	return db, builder, nil
 }
 
-// Migrate runs the database migrations
-func (d *DBConnection) SQLDBMigrate() error {
+// SQLDBMigrate runs the database migrations
+func (c *Connection) SQLDBMigrate() error {
 	log.Println("Running database migrations...")
 
-	driver, err := postgres.WithInstance(d.SQLDB.DB, &postgres.Config{})
+	driver, err := postgres.WithInstance(c.SQLDB.DB, &postgres.Config{})
 	if err != nil {
 		log.Printf("Failed to create postgres driver: %v", err)
 		return err

@@ -11,6 +11,7 @@ import (
 
 var cliRPCClient *rpc.TTTClient
 
+// CreateRPCClient creates a new gRPC client for the server
 func CreateRPCClient() {
 	var err error
 	cliRPCClient, err = rpc.NewTTTClient("", "") // Use defaults
@@ -20,6 +21,7 @@ func CreateRPCClient() {
 	}
 }
 
+// CloseRPCClient closes the gRPC client
 func CloseRPCClient() {
 	err := cliRPCClient.Close()
 	if err != nil {
@@ -28,7 +30,7 @@ func CloseRPCClient() {
 	}
 }
 
-// rootCmd represents the base command when called without any subcommands
+// RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "ttt",
 	Short: "Simple CLI tool to help you keep track of the tasks to do and the time spent on a task",

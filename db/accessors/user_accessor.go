@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// UserAccessor is the interface for the user accessor
 type UserAccessor interface {
 	CreateUser(ctx context.Context, uuid uuid.UUID, name string, email string, password string) (*models.User, error)
 	GetUserAccountByUUID(ctx context.Context, uuid uuid.UUID) (*models.UserAccountWrapper, error)
@@ -89,6 +90,7 @@ func (a *DBAccessor) CreateUser(ctx context.Context, uuid uuid.UUID, name string
 	return user, nil
 }
 
+// GetUserAccountByUUID gets a user account by UUID
 func (a *DBAccessor) GetUserAccountByUUID(ctx context.Context, uuid uuid.UUID) (*models.UserAccountWrapper, error) {
 	usersTable := goqu.T(models.UsersTable)
 	accountsTable := goqu.T(models.AccountsTable)

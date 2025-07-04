@@ -24,7 +24,7 @@ import (
 type TaskAccessorTestSuite struct {
 	suite.Suite
 	ctx          context.Context
-	dbConnection *db.DBConnection
+	dbConnection *db.Connection
 	accessor     *th.TestDBAccessor
 	cleanup      func()
 }
@@ -449,7 +449,7 @@ func (s *TaskAccessorTestSuite) TestCreateTaskLinks_MultipleRelationships() {
 	assert.Contains(s.T(), links, models.TaskLinkDuplicateOf)
 
 	// Verify all relationships exist
-	session, err := s.accessor.DBConnection.NewGraphDBSession(s.ctx)
+	session, err := s.accessor.Connection.NewGraphDBSession(s.ctx)
 	require.NoError(s.T(), err)
 	defer session.Close(s.ctx)
 }

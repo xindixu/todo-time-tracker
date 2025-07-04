@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// Wrap wraps an error with a message
 func Wrap(err error, message string) error {
 	if err == nil {
 		return nil
@@ -15,6 +16,7 @@ func Wrap(err error, message string) error {
 	return wrappedErr
 }
 
+// WrapAsStr wraps an error with a message and returns a string
 func WrapAsStr(err error, message string) string {
 	return Wrap(err, message).Error()
 }

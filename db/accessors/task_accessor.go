@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// TaskAccessor is the interface for the task accessor
 type TaskAccessor interface {
 	CreateTask(ctx context.Context, uuid uuid.UUID, name string, description string, estimatedDuration *time.Duration, status models.TaskStatus) (*models.Task, error)
 	GetTaskByUUID(ctx context.Context, uuid uuid.UUID) (*models.Task, error)
@@ -88,7 +89,7 @@ func (a *DBAccessor) CreateTaskLinks(ctx context.Context, fromTaskUUID uuid.UUID
 		return status.Errorf(codes.InvalidArgument, "cannot link task to itself")
 	}
 
-	session, err := a.DBConnection.NewGraphDBSession(ctx)
+	session, err := a.Connection.NewGraphDBSession(ctx)
 	if err != nil {
 		return err
 	}
@@ -114,7 +115,7 @@ func (a *DBAccessor) CreateTaskLinks(ctx context.Context, fromTaskUUID uuid.UUID
 
 // GetTaskLinks retrieves the links between two tasks
 func (a *DBAccessor) GetTaskLinks(ctx context.Context, fromTaskUUID uuid.UUID, toTaskUUID uuid.UUID) ([]models.TaskLink, error) {
-	session, err := a.DBConnection.NewGraphDBSession(ctx)
+	session, err := a.Connection.NewGraphDBSession(ctx)
 	if err != nil {
 		return nil, err
 	}

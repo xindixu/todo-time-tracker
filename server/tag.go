@@ -14,11 +14,19 @@ import (
 	"todo-time-tracker/proto/go/ttt"
 )
 
+type createTagReqValidator struct {
+	Name string `validate:"required,min=3,max=255"`
+}
+
 // CreateTag creates a new tag
 func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.CreateTagResp, error) {
 	// Validate input (authentication is handled by interceptor)
-	if req.Name == "" {
-		return nil, status.Error(codes.InvalidArgument, "tag name cannot be empty")
+	validator := createTagReqValidator{
+		Name: req.Name,
+	}
+	err := validate.Struct(validator)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
 	}
 
 	// Generate UUID for the new tag
@@ -44,16 +52,22 @@ func (s *TTTServer) CreateTag(ctx context.Context, req *ttt.CreateTagReq) (*ttt.
 	}, nil
 }
 
+type getTagReqValidator struct {
+	UUID string `validate:"required,uuid"`
+}
+
 // GetTag retrieves a tag by UUID
 func (s *TTTServer) GetTag(ctx context.Context, req *ttt.GetTagReq) (*ttt.GetTagResp, error) {
-
-	// Validate input
-	if req.Uuid == "" {
-		return nil, status.Error(codes.InvalidArgument, "tag UUID cannot be empty")
+	validator := getTagReqValidator{
+		UUID: req.Uuid,
+	}
+	err := validate.Struct(validator)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
 	}
 
 	// Get tag from database
-	dbTag, err := s.accessor.GetTagByUUID(ctx, req.Uuid)
+	dbTag, err := s.accessor.GetTagByUUID(ctx, uuid.MustParse(req.Uuid))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.NotFound, "tag not found")

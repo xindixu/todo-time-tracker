@@ -16,15 +16,23 @@ import (
 	"todo-time-tracker/proto/go/ttt"
 )
 
-type CreateTaskReqValidator struct {
-	Name   string            `validate:"required"`
-	Status model.Task_Status `validate:"oneof=TODO IN_PROGRESS DONE BLOCKED"`
+type createTaskReqValidator struct {
+	Name              string               `validate:"required"`
+	Description       string               `validate:"omitempty,max=255"`
+	Status            model.Task_Status    `validate:"oneof=TODO IN_PROGRESS DONE BLOCKED"`
+	EstimatedDuration *durationpb.Duration `validate:"omitempty,duration,gt=0"`
 }
 
 // CreateTask creates a new task
 func (s *TTTServer) CreateTask(ctx context.Context, req *ttt.CreateTaskReq) (*ttt.CreateTaskResp, error) {
 	// Validate input (authentication is handled by interceptor)
-	err := validate.Struct(req)
+	validator := createTaskReqValidator{
+		Name:              req.Name,
+		Description:       req.Description,
+		Status:            req.Status,
+		EstimatedDuration: req.EstimatedDuration,
+	}
+	err := validate.Struct(validator)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
 	}
@@ -72,14 +80,17 @@ func (s *TTTServer) CreateTask(ctx context.Context, req *ttt.CreateTaskReq) (*tt
 	}, nil
 }
 
-type GetTaskReqValidator struct {
-	Uuid string `validate:"required,uuid"`
+type getTaskReqValidator struct {
+	UUID string `validate:"required,uuid"`
 }
 
 // GetTask retrieves a task by UUID
 func (s *TTTServer) GetTask(ctx context.Context, req *ttt.GetTaskReq) (*ttt.GetTaskResp, error) {
 	// Validate input
-	err := validate.Struct(req)
+	validator := getTaskReqValidator{
+		UUID: req.Uuid,
+	}
+	err := validate.Struct(validator)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
 	}
@@ -121,16 +132,21 @@ func (s *TTTServer) GetTask(ctx context.Context, req *ttt.GetTaskReq) (*ttt.GetT
 	}, nil
 }
 
-type CreateTaskLinksReqValidator struct {
-	FromTaskUuid string          `validate:"required,uuid"`
-	ToTaskUuid   string          `validate:"required,uuid"`
+type createTaskLinksReqValidator struct {
+	FromTaskUUID string          `validate:"required,uuid"`
+	ToTaskUUID   string          `validate:"required,uuid"`
 	Link         model.Task_Link `validate:"oneof=PARENT_OF BLOCKS RELATES_TO DUPLICATE_OF"`
 }
 
 // CreateTaskLinks links two tasks together
 func (s *TTTServer) CreateTaskLinks(ctx context.Context, req *ttt.CreateTaskLinksReq) (*ttt.CreateTaskLinksResp, error) {
 	// Validate input
-	err := validate.Struct(req)
+	validator := createTaskLinksReqValidator{
+		FromTaskUUID: req.FromTaskUuid,
+		ToTaskUUID:   req.ToTaskUuid,
+		Link:         req.Link,
+	}
+	err := validate.Struct(validator)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
 	}
@@ -154,14 +170,19 @@ func (s *TTTServer) CreateTaskLinks(ctx context.Context, req *ttt.CreateTaskLink
 	return &ttt.CreateTaskLinksResp{}, nil
 }
 
-type GetTaskLinksReqValidator struct {
-	FromTaskUuid string `validate:"required,uuid"`
-	ToTaskUuid   string `validate:"required,uuid"`
+type getTaskLinksReqValidator struct {
+	FromTaskUUID string `validate:"required,uuid"`
+	ToTaskUUID   string `validate:"required,uuid"`
 }
 
+// GetTaskLinks retrieves links between two tasks
 func (s *TTTServer) GetTaskLinks(ctx context.Context, req *ttt.GetTaskLinksReq) (*ttt.GetTaskLinksResp, error) {
 	// Validate input
-	err := validate.Struct(req)
+	validator := getTaskLinksReqValidator{
+		FromTaskUUID: req.FromTaskUuid,
+		ToTaskUUID:   req.ToTaskUuid,
+	}
+	err := validate.Struct(validator)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
 	}

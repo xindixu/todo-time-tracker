@@ -8,6 +8,8 @@ import (
 )
 
 // -- Task --
+
+// TaskStatusPBToDB converts a protobuf task status to a database task status
 func TaskStatusPBToDB(status model.Task_Status) (models.TaskStatus, error) {
 	switch status {
 	case model.Task_TODO:
@@ -23,6 +25,7 @@ func TaskStatusPBToDB(status model.Task_Status) (models.TaskStatus, error) {
 	}
 }
 
+// TaskStatusDBToPB converts a database task status to a protobuf task status
 func TaskStatusDBToPB(status models.TaskStatus) (model.Task_Status, error) {
 	switch status {
 	case models.TaskStatusTodo:
@@ -38,6 +41,7 @@ func TaskStatusDBToPB(status models.TaskStatus) (model.Task_Status, error) {
 	}
 }
 
+// TaskLinkPBToDB converts a protobuf task link to a database task link
 func TaskLinkPBToDB(link model.Task_Link) (models.TaskLink, error) {
 	switch link {
 	case model.Task_PARENT_OF:
@@ -53,6 +57,7 @@ func TaskLinkPBToDB(link model.Task_Link) (models.TaskLink, error) {
 	}
 }
 
+// TaskLinkDBToPB converts a database task link to a protobuf task link
 func TaskLinkDBToPB(link models.TaskLink) (model.Task_Link, error) {
 	switch link {
 	case models.TaskLinkParentOf:

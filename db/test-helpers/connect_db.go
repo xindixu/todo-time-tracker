@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
 	"todo-time-tracker/db"
@@ -60,12 +59,12 @@ func getDefaultTestDBConfig() *TestDBConfig {
 }
 
 // CreateTestDB creates a test database and returns connection
-func CreateTestDB(t *testing.T) (*db.DBConnection, func()) {
+func CreateTestDB(t *testing.T) (*db.Connection, func()) {
 	sqlDB, sqlBuilder := createTestSQLDB(t)
 
 	graphDB := createTestGraphDB(t)
 
-	dbConnection := &db.DBConnection{
+	dbConnection := &db.Connection{
 		SQLDB:      sqlDB,
 		SQLBuilder: sqlBuilder,
 		GraphDB:    graphDB,
@@ -99,6 +98,7 @@ func CreateTestDB(t *testing.T) (*db.DBConnection, func()) {
 	return dbConnection, cleanup
 }
 
-func CreateTestDBAccessor(t *testing.T, dbConnection *db.DBConnection) *TestDBAccessor {
+// CreateTestDBAccessor creates a test database accessor
+func CreateTestDBAccessor(t *testing.T, dbConnection *db.Connection) *TestDBAccessor {
 	return NewTestDBAccessor(dbConnection)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// UserAccountWrapperFlat is a flat representation of the user account wrapper
 type UserAccountWrapperFlat struct {
 	UserID           int64       `db:"user_id" json:"user_id"`
 	UserUUID         uuid.UUID   `db:"user_uuid" json:"user_uuid"`
@@ -22,6 +23,7 @@ type UserAccountWrapperFlat struct {
 	AccountType      AccountType `db:"account_type" json:"account_type"`
 }
 
+// ToUserAccountWrapper converts a UserAccountWrapperFlat to a UserAccountWrapper
 func (u *UserAccountWrapperFlat) ToUserAccountWrapper() *UserAccountWrapper {
 	return &UserAccountWrapper{
 		User: &User{
@@ -44,11 +46,13 @@ func (u *UserAccountWrapperFlat) ToUserAccountWrapper() *UserAccountWrapper {
 	}
 }
 
+// UserAccountWrapper is a wrapper for the user and account
 type UserAccountWrapper struct {
 	User    *User    `db:"user" json:"user"`
 	Account *Account `db:"account" json:"account"`
 }
 
+// TaskWrapper is a wrapper for the task and tags
 type TaskWrapper struct {
 	Task *Task
 	Tags []*Tag

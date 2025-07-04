@@ -8,15 +8,12 @@ import (
 	"path/filepath"
 
 	"github.com/doug-martin/goqu/v9"
-	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
-// DBConnection holds the database connection and query builder
-type DBConnection struct {
+// Connection holds the database connection and query builder
+type Connection struct {
 	SQLDB                 *sqlx.DB
 	SQLBuilder            *goqu.Database
 	GraphDB               neo4j.DriverWithContext
@@ -48,7 +45,7 @@ func findProjectRoot() (string, error) {
 }
 
 // InitDatabaseConnection initializes database connections
-func InitDatabaseConnection(ctx context.Context, sqlDBConnStr string, graphDBConnArgs GraphDBConnectionArgs) (*DBConnection, error) {
+func InitDatabaseConnection(ctx context.Context, sqlDBConnStr string, graphDBConnArgs GraphDBConnectionArgs) (*Connection, error) {
 	log.Println("Initializing databases...")
 
 	sqlDB, sqlBuilder, err := InitSQLDBConnection(ctx, sqlDBConnStr)
@@ -61,7 +58,7 @@ func InitDatabaseConnection(ctx context.Context, sqlDBConnStr string, graphDBCon
 		return nil, err
 	}
 
-	return &DBConnection{
+	return &Connection{
 		SQLDB:                 sqlDB,
 		SQLBuilder:            sqlBuilder,
 		GraphDB:               graphDB,
@@ -71,7 +68,7 @@ func InitDatabaseConnection(ctx context.Context, sqlDBConnStr string, graphDBCon
 }
 
 // Close closes the database connection
-func (d *DBConnection) Close(ctx context.Context) error {
+func (d *Connection) Close(ctx context.Context) error {
 	log.Println("Closing database connection...")
 	err := d.SQLDB.Close()
 	if err != nil {
@@ -86,7 +83,7 @@ func (d *DBConnection) Close(ctx context.Context) error {
 }
 
 // Health checks if the database connection is healthy
-func (d *DBConnection) Health(ctx context.Context) error {
+func (d *Connection) Health(ctx context.Context) error {
 	err := d.SQLDB.Ping()
 	if err != nil {
 		return err

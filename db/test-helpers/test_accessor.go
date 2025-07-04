@@ -13,16 +13,19 @@ import (
 	goutils "todo-time-tracker/go-utils"
 )
 
+// TestDBAccessor is a test database accessor
 type TestDBAccessor struct {
 	accessors.DBAccessor
 }
 
-func NewTestDBAccessor(dbConnection *db.DBConnection) *TestDBAccessor {
+// NewTestDBAccessor creates a new test database accessor
+func NewTestDBAccessor(dbConnection *db.Connection) *TestDBAccessor {
 	return &TestDBAccessor{
 		*accessors.NewDBAccessor(dbConnection),
 	}
 }
 
+// GetRandomUser gets a random user
 func (a *TestDBAccessor) GetRandomUser() *models.User {
 	return &models.User{
 		UUID:     uuid.New(),
@@ -32,6 +35,7 @@ func (a *TestDBAccessor) GetRandomUser() *models.User {
 	}
 }
 
+// GetRandomTask gets a random task
 func (a *TestDBAccessor) GetRandomTask() *models.Task {
 	duration := goutils.RandDuration(10)
 	return &models.Task{
@@ -43,6 +47,7 @@ func (a *TestDBAccessor) GetRandomTask() *models.Task {
 	}
 }
 
+// CreateTestUser creates a test user
 func (a *TestDBAccessor) CreateTestUser(t *testing.T) *models.User {
 	user := a.GetRandomUser()
 	user, err := a.CreateUser(t.Context(), user.UUID, user.Name, user.Email, user.Password)
@@ -50,6 +55,7 @@ func (a *TestDBAccessor) CreateTestUser(t *testing.T) *models.User {
 	return user
 }
 
+// CreateTestUserWithUUID creates a test user with a specific UUID
 func (a *TestDBAccessor) CreateTestUserWithUUID(t *testing.T, uuid uuid.UUID) *models.User {
 	user := a.GetRandomUser()
 	_, err := a.CreateUser(t.Context(), uuid, user.Name, user.Email, user.Password)
@@ -57,6 +63,7 @@ func (a *TestDBAccessor) CreateTestUserWithUUID(t *testing.T, uuid uuid.UUID) *m
 	return user
 }
 
+// CreateTestTask creates a test task
 func (a *TestDBAccessor) CreateTestTask(t *testing.T, user *models.User) *models.Task {
 	task := a.GetRandomTask()
 	ctx := context.WithValue(t.Context(), goutils.ContextKeyAccountID, user.AccountID)

@@ -38,7 +38,7 @@ func createTestGraphDB(t *testing.T) neo4j.DriverWithContext {
 	return graphDB
 }
 
-func dropTestGraphDB(t *testing.T, dbConnection *db.DBConnection) {
+func dropTestGraphDB(t *testing.T, dbConnection *db.Connection) {
 	// Check if the driver is still open before trying to create a session
 	// if dbConnection.GraphDB == nil {
 	// 	t.Log("GraphDB driver is nil, skipping drop operation")

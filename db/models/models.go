@@ -11,11 +11,13 @@ import (
 // AccountType represents a account type in the database
 type AccountType string
 
+// AccountTypes
 const (
 	AccountTypeUser         AccountType = "USER"
 	AccountTypeOrganization AccountType = "ORGANIZATION"
 )
 
+// IsValid checks if the account type is valid
 func (a AccountType) IsValid() bool {
 	switch a {
 	case AccountTypeUser, AccountTypeOrganization:
@@ -88,8 +90,10 @@ func (Tag) TableName() string {
 	return "tags"
 }
 
+// TaskStatus represents a task status in the database
 type TaskStatus string
 
+// TaskStatuses
 const (
 	TaskStatusInvalid    TaskStatus = "INVALID"
 	TaskStatusTodo       TaskStatus = "TODO"
@@ -98,6 +102,7 @@ const (
 	TaskStatusDone       TaskStatus = "DONE"
 )
 
+// IsValid checks if the task status is valid
 func (s TaskStatus) IsValid() bool {
 	switch s {
 	case TaskStatusTodo, TaskStatusInProgress, TaskStatusDone, TaskStatusBlocked:
@@ -128,6 +133,7 @@ func (Task) TableName() string {
 // TaskLink represents a task link in the database
 type TaskLink string
 
+// TaskLinks
 const (
 	TaskLinkInvalid     TaskLink = "INVALID"
 	TaskLinkParentOf    TaskLink = "PARENT_OF"
@@ -136,6 +142,7 @@ const (
 	TaskLinkDuplicateOf TaskLink = "DUPLICATE_OF"
 )
 
+// IsValid checks if the task link is valid
 func (t TaskLink) IsValid() bool {
 	switch t {
 	case TaskLinkParentOf, TaskLinkBlocks, TaskLinkRelatesTo, TaskLinkDuplicateOf:
@@ -184,6 +191,7 @@ type TaskTag struct {
 	TagID     int64     `db:"tag_id" json:"tag_id"`
 }
 
+// TableName returns the table name for the TaskTag model
 func (TaskTag) TableName() string {
 	return "task_tags"
 }
@@ -197,6 +205,7 @@ type TaskUser struct {
 	UserID    int64     `db:"user_id" json:"user_id"`
 }
 
+// TableName returns the table name for the TaskUser model
 func (TaskUser) TableName() string {
 	return "task_users"
 }

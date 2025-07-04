@@ -1,5 +1,6 @@
 package models
 
+// Tables
 const (
 	UsersTable             = "users"
 	AccountsTable          = "accounts"

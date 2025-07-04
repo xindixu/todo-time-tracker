@@ -14,7 +14,7 @@ import (
 // TagAccessor handles database operations for tags
 type TagAccessor interface {
 	CreateTag(ctx context.Context, uuid uuid.UUID, name string) (*models.Tag, error)
-	GetTagByUUID(ctx context.Context, uuid string) (*models.Tag, error)
+	GetTagByUUID(ctx context.Context, uuid uuid.UUID) (*models.Tag, error)
 }
 
 // Ensure DBAccessor implements TagAccessor
@@ -58,7 +58,7 @@ func (a *DBAccessor) CreateTag(ctx context.Context, uuid uuid.UUID, name string)
 }
 
 // GetTagByUUID retrieves a tag by its UUID
-func (a *DBAccessor) GetTagByUUID(ctx context.Context, uuid string) (*models.Tag, error) {
+func (a *DBAccessor) GetTagByUUID(ctx context.Context, uuid uuid.UUID) (*models.Tag, error) {
 	var tag models.Tag
 
 	tagsTable := goqu.T("tags")

@@ -21,7 +21,7 @@ import (
 type UserAccessorTestSuite struct {
 	suite.Suite
 	ctx          context.Context
-	dbConnection *db.DBConnection
+	dbConnection *db.Connection
 	accessor     *th.TestDBAccessor
 	cleanup      func()
 }
