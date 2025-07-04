@@ -36,7 +36,7 @@ func (s *TaskAccessorTestSuite) SetupSuite() {
 	th.SkipIfNoPostgreSQL(s.T())
 
 	// Create test database
-	s.dbConnection, s.cleanup = th.CreateTestDB(s.T(), nil)
+	s.dbConnection, s.cleanup = th.CreateTestDB(s.T())
 
 	// Create accessor
 	s.accessor = th.CreateTestDBAccessor(s.T(), s.dbConnection)

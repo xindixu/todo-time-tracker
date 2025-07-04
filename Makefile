@@ -45,11 +45,11 @@ GRAPH_DB_URL=neo4j://127.0.0.1:7687
 
 graphdb-create:
 	@echo "Creating graph database..."
-	echo "CREATE DATABASE ${GRAPH_DB_NAME};" | cypher-shell -u neo4j -p password -a neo4j://127.0.0.1:7687 -d system
+	echo "CREATE DATABASE ${GRAPH_DB_NAME} IF NOT EXISTS;" | cypher-shell -u neo4j -p password -a neo4j://127.0.0.1:7687 -d system
 
 graphdb-drop:
 	@echo "Dropping graph database..."
-	echo "DROP DATABASE ${GRAPH_DB_NAME};" | cypher-shell -u neo4j -p password -a neo4j://127.0.0.1:7687 -d system
+	echo "DROP DATABASE ${GRAPH_DB_NAME} IF EXISTS;" | cypher-shell -u neo4j -p password -a neo4j://127.0.0.1:7687 -d system
 
 # CLI
 build-cli:
