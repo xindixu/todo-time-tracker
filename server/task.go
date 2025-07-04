@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -25,7 +24,6 @@ type CreateTaskReqValidator struct {
 // CreateTask creates a new task
 func (s *TTTServer) CreateTask(ctx context.Context, req *ttt.CreateTaskReq) (*ttt.CreateTaskResp, error) {
 	// Validate input (authentication is handled by interceptor)
-	validate := validator.New()
 	err := validate.Struct(req)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
@@ -81,7 +79,6 @@ type GetTaskReqValidator struct {
 // GetTask retrieves a task by UUID
 func (s *TTTServer) GetTask(ctx context.Context, req *ttt.GetTaskReq) (*ttt.GetTaskResp, error) {
 	// Validate input
-	validate := validator.New()
 	err := validate.Struct(req)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
@@ -124,16 +121,15 @@ func (s *TTTServer) GetTask(ctx context.Context, req *ttt.GetTaskReq) (*ttt.GetT
 	}, nil
 }
 
-type LinkTasksReqValidator struct {
+type CreateTaskLinksReqValidator struct {
 	FromTaskUuid string          `validate:"required,uuid"`
 	ToTaskUuid   string          `validate:"required,uuid"`
 	Link         model.Task_Link `validate:"oneof=PARENT_OF BLOCKS RELATES_TO DUPLICATE_OF"`
 }
 
-// LinkTasks links two tasks together
-func (s *TTTServer) LinkTasks(ctx context.Context, req *ttt.LinkTasksReq) (*ttt.LinkTasksResp, error) {
+// CreateTaskLinks links two tasks together
+func (s *TTTServer) CreateTaskLinks(ctx context.Context, req *ttt.CreateTaskLinksReq) (*ttt.CreateTaskLinksResp, error) {
 	// Validate input
-	validate := validator.New()
 	err := validate.Struct(req)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
@@ -150,10 +146,42 @@ func (s *TTTServer) LinkTasks(ctx context.Context, req *ttt.LinkTasksReq) (*ttt.
 	toTaskUUID := uuid.MustParse(req.ToTaskUuid)
 
 	// Link tasks
-	err = s.accessor.LinkTasks(ctx, fromTaskUUID, toTaskUUID, dbLink)
+	err = s.accessor.CreateTaskLinks(ctx, fromTaskUUID, toTaskUUID, dbLink)
 	if err != nil {
 		return nil, status.Error(codes.Internal, utils.WrapAsStr(err, "failed to link tasks"))
 	}
 
-	return &ttt.LinkTasksResp{}, nil
+	return &ttt.CreateTaskLinksResp{}, nil
+}
+
+type GetTaskLinksReqValidator struct {
+	FromTaskUuid string `validate:"required,uuid"`
+	ToTaskUuid   string `validate:"required,uuid"`
+}
+
+func (s *TTTServer) GetTaskLinks(ctx context.Context, req *ttt.GetTaskLinksReq) (*ttt.GetTaskLinksResp, error) {
+	// Validate input
+	err := validate.Struct(req)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, utils.WrapAsStr(err, "invalid request"))
+	}
+
+	fromTaskUUID := uuid.MustParse(req.FromTaskUuid)
+	toTaskUUID := uuid.MustParse(req.ToTaskUuid)
+
+	links, err := s.accessor.GetTaskLinks(ctx, fromTaskUUID, toTaskUUID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, utils.WrapAsStr(err, "failed to get task links"))
+	}
+
+	pbLinks := make([]model.Task_Link, 0)
+	for _, link := range links {
+		pbLink, err := utils.TaskLinkDBToPB(link)
+		if err != nil {
+			return nil, status.Error(codes.Internal, utils.WrapAsStr(err, "failed to convert task link"))
+		}
+		pbLinks = append(pbLinks, pbLink)
+	}
+
+	return &ttt.GetTaskLinksResp{Links: pbLinks}, nil
 }

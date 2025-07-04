@@ -113,7 +113,10 @@ func createTestGraphDB(t *testing.T, config *TestDBConfig) neo4j.DriverWithConte
 		DBPassword: config.GraphDBPassword,
 		DBName:     config.GraphDBName,
 	})
-	require.NoError(t, err, "Failed to initialize graph database connection")
+	if err != nil {
+		t.Logf("Neo4j not available, skipping graph database tests: %v", err)
+		return nil
+	}
 
 	return graphDB
 }
@@ -132,6 +135,12 @@ func CreateTestDB(t *testing.T, config *TestDBConfig) (*db.DBConnection, func())
 		SQLDB:      sqlDB,
 		SQLBuilder: sqlBuilder,
 		GraphDB:    graphDB,
+		GraphDBConnectionArgs: db.GraphDBConnectionArgs{
+			DBUri:      config.GraphDBUri,
+			DBUser:     config.GraphDBUser,
+			DBPassword: config.GraphDBPassword,
+			DBName:     config.GraphDBName,
+		},
 	}
 
 	// Run migrations
@@ -204,6 +213,34 @@ func CleanupTestSQLDB(t *testing.T, dbConnection *db.DBConnection) {
 func SkipIfNoPostgreSQL(t *testing.T) {
 	if !isPostgreSQLAvailable(t) {
 		t.Skip("PostgreSQL not available, skipping test")
+	}
+}
+
+// isNeo4jAvailable checks if Neo4j is available for testing
+func isNeo4jAvailable(t *testing.T) bool {
+	config := DefaultTestDBConfig()
+
+	// Try to connect to Neo4j
+	driver, err := neo4j.NewDriverWithContext(config.GraphDBUri, neo4j.BasicAuth(config.GraphDBUser, config.GraphDBPassword, ""))
+	if err != nil {
+		t.Logf("Neo4j not available: %v", err)
+		return false
+	}
+	defer driver.Close(t.Context())
+
+	// Test connection
+	if err := driver.VerifyConnectivity(t.Context()); err != nil {
+		t.Logf("Neo4j not available: %v", err)
+		return false
+	}
+
+	return true
+}
+
+// SkipIfNoNeo4j skips the test if Neo4j is not available
+func SkipIfNoNeo4j(t *testing.T) {
+	if !isNeo4jAvailable(t) {
+		t.Skip("Neo4j not available, skipping test")
 	}
 }
 

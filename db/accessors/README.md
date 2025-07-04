@@ -1,32 +1,16 @@
-# User Accessor Tests
+# Database Accessor Tests
 
-This directory contains comprehensive unit tests for the user accessor functionality.
+This directory contains comprehensive unit tests for all database accessor functionality.
 
 ## Test Structure
 
 The tests are organized using the `testify/suite` package and include:
 
-- **Test Suite**: `UserAccessorTestSuite` - Main test suite with database integration
+- **Test Suites**:
+  - `UserAccessorTestSuite` - Tests for user management functionality
+  - `TaskAccessorTestSuite` - Tests for task management functionality
 - **Test Helpers**: `test_helpers.go` - Utilities for database testing
 - **Individual Tests**: Simple tests that don't require database connection
-
-## Test Coverage
-
-The tests cover the following scenarios:
-
-### Database Integration Tests (require PostgreSQL)
-- ✅ Successful user creation
-- ✅ Duplicate UUID handling
-- ✅ Duplicate email handling
-- ✅ Empty required fields validation
-- ✅ Context timeout handling
-- ✅ Multiple user creation
-- ✅ Transaction rollback on errors
-- ✅ Database constraint validation
-
-### Simple Tests (no database required)
-- ✅ Interface compliance verification
-- ✅ Accessor constructor testing
 
 ## Running the Tests
 
@@ -52,7 +36,7 @@ If not set, the tests will use these defaults:
 - User: `postgres`
 - Password: `postgres`
 
-### Running All Tests
+### Running Tests
 
 ```bash
 # Run all tests in the accessors package
@@ -61,17 +45,7 @@ go test ./db/accessors -v
 # Run with coverage
 go test ./db/accessors -v -cover
 
-# Run only simple tests (no database required)
-go test ./db/accessors -v -run "TestCreateUser_InterfaceCompliance_Simple|TestNewDBAccessor"
-
-# Run only database integration tests
-go test ./db/accessors -v -run "TestUserAccessorSuite"
-```
-
-### Running Specific Test Suites
-
-```bash
-# Run the main test suite
+# Run the user accessor test suite
 go test ./db/accessors -v -run "TestUserAccessorSuite"
 
 # Run a specific test method
@@ -107,6 +81,24 @@ Before each test, the following tables are cleaned up in dependency order:
 8. `organizations`
 9. `accounts`
 
+## Test Helpers
+
+The test helpers provide utilities for creating test data:
+
+### TestDBAccessor Methods
+- `CreateTestUser(t *testing.T)` - Creates a random user for testing
+- `CreateTestUserWithUUID(t *testing.T, uuid uuid.UUID)` - Creates a user with specific UUID
+- `CreateTestTask(t *testing.T, user *models.User)` - Creates a random task for a user
+- `GetRandomUser()` - Returns a random user model (not saved to DB)
+- `GetRandomTask()` - Returns a random task model (not saved to DB)
+
+### Database Utilities
+- `IsPostgreSQLAvailable()` - Check if PostgreSQL is accessible
+- `CreateTestSQLDB()` - Create and configure a test database
+- `CleanupTestSQLDB()` - Remove all test data
+- `SkipIfNoPostgreSQL()` - Skip tests if PostgreSQL is unavailable
+- `DefaultTestDBConfig()` - Get default test database configuration
+
 ## Troubleshooting
 
 ### PostgreSQL Not Available
@@ -139,7 +131,7 @@ The postgres user needs these permissions:
 
 When adding new tests to the suite:
 
-1. Add test methods to `UserAccessorTestSuite`
+1. Add test methods to the appropriate test suite (`UserAccessorTestSuite` or `TaskAccessorTestSuite`)
 2. Use the existing `suite.accessor` and `suite.dbConnection`
 3. Follow the naming convention: `Test{MethodName}_{Scenario}`
 4. Use `require` for setup assertions and `assert` for test assertions
@@ -150,13 +142,3 @@ func (suite *UserAccessorTestSuite) TestCreateUser_NewScenario() {
     // Test implementation
 }
 ```
-
-## Test Helpers
-
-The `test_helpers.go` file provides these utilities:
-
-- `IsPostgreSQLAvailable()` - Check if PostgreSQL is accessible
-- `CreateTestSQLDB()` - Create and configure a test database
-- `CleanupTestSQLDB()` - Remove all test data
-- `SkipIfNoPostgreSQL()` - Skip tests if PostgreSQL is unavailable
-- `DefaultTestDBConfig()` - Get default test database configuration

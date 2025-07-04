@@ -16,7 +16,8 @@ import (
 type TaskAccessor interface {
 	CreateTask(ctx context.Context, uuid uuid.UUID, name string, description string, estimatedDuration *time.Duration, status models.TaskStatus) (*models.Task, error)
 	GetTaskByUUID(ctx context.Context, uuid uuid.UUID) (*models.Task, error)
-	LinkTasks(ctx context.Context, fromTaskUUID uuid.UUID, toTaskUUID uuid.UUID, link models.TaskLink) error
+	CreateTaskLinks(ctx context.Context, fromTaskUUID uuid.UUID, toTaskUUID uuid.UUID, link models.TaskLink) error
+	GetTaskLinks(ctx context.Context, fromTaskUUID uuid.UUID, toTaskUUID uuid.UUID) ([]models.TaskLink, error)
 }
 
 // Ensure DBAccessor implements TaskAccessor
@@ -76,12 +77,13 @@ func (a *DBAccessor) GetTaskByUUID(ctx context.Context, uuid uuid.UUID) (*models
 	return &task, nil
 }
 
-// LinkTasks links two tasks together
-func (a *DBAccessor) LinkTasks(ctx context.Context, fromTaskUUID uuid.UUID, toTaskUUID uuid.UUID, link models.TaskLink) error {
+// CreateTaskLinks links two tasks together
+func (a *DBAccessor) CreateTaskLinks(ctx context.Context, fromTaskUUID uuid.UUID, toTaskUUID uuid.UUID, link models.TaskLink) error {
 	session, err := a.DBConnection.NewGraphDBSession(ctx)
 	if err != nil {
 		return err
 	}
+	defer session.Close(ctx)
 
 	q := fmt.Sprintf(`
 		MERGE (from:Task {uuid: $fromTaskUUID})
@@ -99,4 +101,49 @@ func (a *DBAccessor) LinkTasks(ctx context.Context, fromTaskUUID uuid.UUID, toTa
 	})
 
 	return err
+}
+
+// GetTaskLinks retrieves the links between two tasks
+func (a *DBAccessor) GetTaskLinks(ctx context.Context, fromTaskUUID uuid.UUID, toTaskUUID uuid.UUID) ([]models.TaskLink, error) {
+	session, err := a.DBConnection.NewGraphDBSession(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close(ctx)
+
+	q := `
+		MATCH (from:Task {uuid: $fromTaskUUID})-[r]->(to:Task {uuid: $toTaskUUID})
+		RETURN type(r) as relationshipType
+	`
+
+	records, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		result, err := tx.Run(ctx, q,
+			map[string]any{
+				"fromTaskUUID": fromTaskUUID.String(),
+				"toTaskUUID":   toTaskUUID.String(),
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+		records, err := result.Collect(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return records, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	neo4jRecords := records.([]*neo4j.Record)
+	taskLinks := make([]models.TaskLink, 0, len(neo4jRecords))
+	for _, record := range neo4jRecords {
+		relationshipType, ok := record.Get("relationshipType")
+		if !ok {
+			continue
+		}
+		taskLinks = append(taskLinks, models.TaskLink(relationshipType.(string)))
+	}
+	return taskLinks, nil
 }

@@ -19,15 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TTTService_CreateUser_FullMethodName = "/ttt.TTTService/CreateUser"
-	TTTService_GetTag_FullMethodName     = "/ttt.TTTService/GetTag"
-	TTTService_ListTags_FullMethodName   = "/ttt.TTTService/ListTags"
-	TTTService_CreateTag_FullMethodName  = "/ttt.TTTService/CreateTag"
-	TTTService_UpdateTag_FullMethodName  = "/ttt.TTTService/UpdateTag"
-	TTTService_DeleteTag_FullMethodName  = "/ttt.TTTService/DeleteTag"
-	TTTService_CreateTask_FullMethodName = "/ttt.TTTService/CreateTask"
-	TTTService_GetTask_FullMethodName    = "/ttt.TTTService/GetTask"
-	TTTService_LinkTasks_FullMethodName  = "/ttt.TTTService/LinkTasks"
+	TTTService_CreateUser_FullMethodName      = "/ttt.TTTService/CreateUser"
+	TTTService_GetTag_FullMethodName          = "/ttt.TTTService/GetTag"
+	TTTService_ListTags_FullMethodName        = "/ttt.TTTService/ListTags"
+	TTTService_CreateTag_FullMethodName       = "/ttt.TTTService/CreateTag"
+	TTTService_UpdateTag_FullMethodName       = "/ttt.TTTService/UpdateTag"
+	TTTService_DeleteTag_FullMethodName       = "/ttt.TTTService/DeleteTag"
+	TTTService_CreateTask_FullMethodName      = "/ttt.TTTService/CreateTask"
+	TTTService_GetTask_FullMethodName         = "/ttt.TTTService/GetTask"
+	TTTService_CreateTaskLinks_FullMethodName = "/ttt.TTTService/CreateTaskLinks"
+	TTTService_GetTaskLinks_FullMethodName    = "/ttt.TTTService/GetTaskLinks"
 )
 
 // TTTServiceClient is the client API for TTTService service.
@@ -47,7 +48,8 @@ type TTTServiceClient interface {
 	// Task operations
 	CreateTask(ctx context.Context, in *CreateTaskReq, opts ...grpc.CallOption) (*CreateTaskResp, error)
 	GetTask(ctx context.Context, in *GetTaskReq, opts ...grpc.CallOption) (*GetTaskResp, error)
-	LinkTasks(ctx context.Context, in *LinkTasksReq, opts ...grpc.CallOption) (*LinkTasksResp, error)
+	CreateTaskLinks(ctx context.Context, in *CreateTaskLinksReq, opts ...grpc.CallOption) (*CreateTaskLinksResp, error)
+	GetTaskLinks(ctx context.Context, in *GetTaskLinksReq, opts ...grpc.CallOption) (*GetTaskLinksResp, error)
 }
 
 type tTTServiceClient struct {
@@ -138,10 +140,20 @@ func (c *tTTServiceClient) GetTask(ctx context.Context, in *GetTaskReq, opts ...
 	return out, nil
 }
 
-func (c *tTTServiceClient) LinkTasks(ctx context.Context, in *LinkTasksReq, opts ...grpc.CallOption) (*LinkTasksResp, error) {
+func (c *tTTServiceClient) CreateTaskLinks(ctx context.Context, in *CreateTaskLinksReq, opts ...grpc.CallOption) (*CreateTaskLinksResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LinkTasksResp)
-	err := c.cc.Invoke(ctx, TTTService_LinkTasks_FullMethodName, in, out, cOpts...)
+	out := new(CreateTaskLinksResp)
+	err := c.cc.Invoke(ctx, TTTService_CreateTaskLinks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tTTServiceClient) GetTaskLinks(ctx context.Context, in *GetTaskLinksReq, opts ...grpc.CallOption) (*GetTaskLinksResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTaskLinksResp)
+	err := c.cc.Invoke(ctx, TTTService_GetTaskLinks_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +177,8 @@ type TTTServiceServer interface {
 	// Task operations
 	CreateTask(context.Context, *CreateTaskReq) (*CreateTaskResp, error)
 	GetTask(context.Context, *GetTaskReq) (*GetTaskResp, error)
-	LinkTasks(context.Context, *LinkTasksReq) (*LinkTasksResp, error)
+	CreateTaskLinks(context.Context, *CreateTaskLinksReq) (*CreateTaskLinksResp, error)
+	GetTaskLinks(context.Context, *GetTaskLinksReq) (*GetTaskLinksResp, error)
 	mustEmbedUnimplementedTTTServiceServer()
 }
 
@@ -200,8 +213,11 @@ func (UnimplementedTTTServiceServer) CreateTask(context.Context, *CreateTaskReq)
 func (UnimplementedTTTServiceServer) GetTask(context.Context, *GetTaskReq) (*GetTaskResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTask not implemented")
 }
-func (UnimplementedTTTServiceServer) LinkTasks(context.Context, *LinkTasksReq) (*LinkTasksResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LinkTasks not implemented")
+func (UnimplementedTTTServiceServer) CreateTaskLinks(context.Context, *CreateTaskLinksReq) (*CreateTaskLinksResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTaskLinks not implemented")
+}
+func (UnimplementedTTTServiceServer) GetTaskLinks(context.Context, *GetTaskLinksReq) (*GetTaskLinksResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTaskLinks not implemented")
 }
 func (UnimplementedTTTServiceServer) mustEmbedUnimplementedTTTServiceServer() {}
 func (UnimplementedTTTServiceServer) testEmbeddedByValue()                    {}
@@ -368,20 +384,38 @@ func _TTTService_GetTask_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TTTService_LinkTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LinkTasksReq)
+func _TTTService_CreateTaskLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTaskLinksReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TTTServiceServer).LinkTasks(ctx, in)
+		return srv.(TTTServiceServer).CreateTaskLinks(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TTTService_LinkTasks_FullMethodName,
+		FullMethod: TTTService_CreateTaskLinks_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TTTServiceServer).LinkTasks(ctx, req.(*LinkTasksReq))
+		return srv.(TTTServiceServer).CreateTaskLinks(ctx, req.(*CreateTaskLinksReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TTTService_GetTaskLinks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTaskLinksReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TTTServiceServer).GetTaskLinks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TTTService_GetTaskLinks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TTTServiceServer).GetTaskLinks(ctx, req.(*GetTaskLinksReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -426,8 +460,12 @@ var TTTService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TTTService_GetTask_Handler,
 		},
 		{
-			MethodName: "LinkTasks",
-			Handler:    _TTTService_LinkTasks_Handler,
+			MethodName: "CreateTaskLinks",
+			Handler:    _TTTService_CreateTaskLinks_Handler,
+		},
+		{
+			MethodName: "GetTaskLinks",
+			Handler:    _TTTService_GetTaskLinks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

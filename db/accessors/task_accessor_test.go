@@ -11,6 +11,7 @@ import (
 	goutils "todo-time-tracker/go-utils"
 
 	"github.com/google/uuid"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -321,4 +322,317 @@ func (s *TaskAccessorTestSuite) TestGetTaskByUUID_NotFound() {
 	// Should return error for non-existent task
 	assert.Error(s.T(), err)
 	assert.Nil(s.T(), task)
+}
+
+// TestCreateTaskLinks_Success tests successful task linking
+func (s *TaskAccessorTestSuite) TestCreateTaskLinks_Success() {
+	// Create test user and tasks
+	user := s.accessor.CreateTestUser(s.T())
+	task1 := s.accessor.CreateTestTask(s.T(), user)
+	task2 := s.accessor.CreateTestTask(s.T(), user)
+
+	// Test different link types
+	testCases := []struct {
+		name     string
+		linkType models.TaskLink
+	}{
+		{"Parent of link", models.TaskLinkParentOf},
+		{"Blocks link", models.TaskLinkBlocks},
+		{"Relates to link", models.TaskLinkRelatesTo},
+		{"Duplicate of link", models.TaskLinkDuplicateOf},
+	}
+
+	for _, tc := range testCases {
+		s.T().Run(tc.name, func(t *testing.T) {
+			// Execute
+			err := s.accessor.CreateTaskLinks(s.ctx, task1.UUID, task2.UUID, tc.linkType)
+
+			// Assert
+			require.NoError(t, err)
+
+			// Verify the link was created in Neo4j
+			session, err := s.accessor.DBConnection.NewGraphDBSession(s.ctx)
+			require.NoError(t, err)
+			defer session.Close(s.ctx)
+
+			result, err := session.ExecuteRead(s.ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+				query := fmt.Sprintf(`
+					MATCH (from:Task {uuid: $fromTaskUUID})-[r:%s]->(to:Task {uuid: $toTaskUUID})
+					RETURN r
+				`, tc.linkType)
+				return tx.Run(s.ctx, query, map[string]any{
+					"fromTaskUUID": task1.UUID.String(),
+					"toTaskUUID":   task2.UUID.String(),
+				})
+			})
+			require.NoError(t, err)
+
+			records := result.(neo4j.ResultWithContext)
+			record, err := records.Single(s.ctx)
+			require.NoError(t, err)
+			assert.NotNil(t, record)
+		})
+	}
+}
+
+// TestCreateTaskLinks_SameTask tests linking a task to itself
+func (s *TaskAccessorTestSuite) TestCreateTaskLinks_SameTask() {
+
+	user := s.accessor.CreateTestUser(s.T())
+	task := s.accessor.CreateTestTask(s.T(), user)
+
+	// Execute
+	err := s.accessor.CreateTaskLinks(s.ctx, task.UUID, task.UUID, models.TaskLinkParentOf)
+
+	// Assert - should succeed (Neo4j allows self-relationships)
+	require.NoError(s.T(), err)
+
+	// Verify the self-link was created
+	session, err := s.accessor.DBConnection.NewGraphDBSession(s.ctx)
+	require.NoError(s.T(), err)
+	defer session.Close(s.ctx)
+
+	result, err := session.ExecuteRead(s.ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		query := `
+			MATCH (from:Task {uuid: $taskUUID})-[r:PARENT_OF]->(to:Task {uuid: $taskUUID})
+			RETURN r
+		`
+		return tx.Run(s.ctx, query, map[string]any{
+			"taskUUID": task.UUID.String(),
+		})
+	})
+	require.NoError(s.T(), err)
+
+	records := result.(neo4j.ResultWithContext)
+	record, err := records.Single(s.ctx)
+	require.NoError(s.T(), err)
+	assert.NotNil(s.T(), record)
+}
+
+// TestCreateTaskLinks_NonExistentTasks tests linking non-existent tasks
+func (s *TaskAccessorTestSuite) TestCreateTaskLinks_NonExistentTasks() {
+	nonExistentUUID1 := uuid.New()
+	nonExistentUUID2 := uuid.New()
+
+	// Execute
+	err := s.accessor.CreateTaskLinks(s.ctx, nonExistentUUID1, nonExistentUUID2, models.TaskLinkParentOf)
+
+	// Assert - should succeed because MERGE creates nodes if they don't exist
+	require.NoError(s.T(), err)
+
+	// Verify the nodes and relationship were created
+	session, err := s.accessor.DBConnection.NewGraphDBSession(s.ctx)
+	require.NoError(s.T(), err)
+	defer session.Close(s.ctx)
+
+	result, err := session.ExecuteRead(s.ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		query := `
+			MATCH (from:Task {uuid: $fromTaskUUID})-[r:PARENT_OF]->(to:Task {uuid: $toTaskUUID})
+			RETURN from, r, to
+		`
+		return tx.Run(s.ctx, query, map[string]any{
+			"fromTaskUUID": nonExistentUUID1.String(),
+			"toTaskUUID":   nonExistentUUID2.String(),
+		})
+	})
+	require.NoError(s.T(), err)
+
+	records := result.(neo4j.ResultWithContext)
+	record, err := records.Single(s.ctx)
+	require.NoError(s.T(), err)
+	assert.NotNil(s.T(), record)
+}
+
+// TestCreateTaskLinks_DuplicateLink tests creating the same link multiple times
+func (s *TaskAccessorTestSuite) TestCreateTaskLinks_DuplicateLink() {
+
+	if s.accessor.GraphDB == nil {
+		s.T().Skip("Neo4j not available, skipping test")
+	}
+	user := s.accessor.CreateTestUser(s.T())
+	task1 := s.accessor.CreateTestTask(s.T(), user)
+	task2 := s.accessor.CreateTestTask(s.T(), user)
+
+	// Create the same link multiple times
+	for i := 0; i < 3; i++ {
+		err := s.accessor.CreateTaskLinks(s.ctx, task1.UUID, task2.UUID, models.TaskLinkBlocks)
+		require.NoError(s.T(), err)
+	}
+
+	// Verify only one relationship exists (MERGE prevents duplicates)
+	session, err := s.accessor.DBConnection.NewGraphDBSession(s.ctx)
+	require.NoError(s.T(), err)
+	defer session.Close(s.ctx)
+
+	result, err := session.ExecuteRead(s.ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		query := `
+			MATCH (from:Task {uuid: $fromTaskUUID})-[r:BLOCKS]->(to:Task {uuid: $toTaskUUID})
+			RETURN count(r) as relationshipCount
+		`
+		return tx.Run(s.ctx, query, map[string]any{
+			"fromTaskUUID": task1.UUID.String(),
+			"toTaskUUID":   task2.UUID.String(),
+		})
+	})
+	require.NoError(s.T(), err)
+
+	records := result.(neo4j.ResultWithContext)
+	record, err := records.Single(s.ctx)
+	require.NoError(s.T(), err)
+
+	var count int64
+	count = record.Values[0].(int64)
+	assert.Equal(s.T(), int64(1), count)
+}
+
+// TestCreateTaskLinks_InvalidLinkType tests linking with invalid link type
+func (s *TaskAccessorTestSuite) TestCreateTaskLinks_InvalidLinkType() {
+	user := s.accessor.CreateTestUser(s.T())
+	task1 := s.accessor.CreateTestTask(s.T(), user)
+	task2 := s.accessor.CreateTestTask(s.T(), user)
+
+	// Execute with invalid link type
+	err := s.accessor.CreateTaskLinks(s.ctx, task1.UUID, task2.UUID, models.TaskLinkInvalid)
+
+	// Assert - should succeed because Neo4j will create the relationship with the invalid type
+	// The validation should happen at a higher level if needed
+	require.NoError(s.T(), err)
+
+	// Verify the relationship was created with the invalid type
+	session, err := s.accessor.DBConnection.NewGraphDBSession(s.ctx)
+	require.NoError(s.T(), err)
+	defer session.Close(s.ctx)
+
+	result, err := session.ExecuteRead(s.ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		query := `
+			MATCH (from:Task {uuid: $fromTaskUUID})-[r:INVALID]->(to:Task {uuid: $toTaskUUID})
+			RETURN r
+		`
+		return tx.Run(s.ctx, query, map[string]any{
+			"fromTaskUUID": task1.UUID.String(),
+			"toTaskUUID":   task2.UUID.String(),
+		})
+	})
+	require.NoError(s.T(), err)
+
+	records := result.(neo4j.ResultWithContext)
+	record, err := records.Single(s.ctx)
+	require.NoError(s.T(), err)
+	assert.NotNil(s.T(), record)
+}
+
+// TestCreateTaskLinks_MultipleRelationships tests creating multiple different relationships between the same tasks
+func (s *TaskAccessorTestSuite) TestCreateTaskLinks_MultipleRelationships() {
+	user := s.accessor.CreateTestUser(s.T())
+	task1 := s.accessor.CreateTestTask(s.T(), user)
+	task2 := s.accessor.CreateTestTask(s.T(), user)
+
+	// Create multiple different relationships
+	relationships := []models.TaskLink{
+		models.TaskLinkParentOf,
+		models.TaskLinkBlocks,
+		models.TaskLinkRelatesTo,
+		models.TaskLinkDuplicateOf,
+	}
+
+	for _, rel := range relationships {
+		err := s.accessor.CreateTaskLinks(s.ctx, task1.UUID, task2.UUID, rel)
+		require.NoError(s.T(), err)
+	}
+
+	// Verify all relationships exist
+	session, err := s.accessor.DBConnection.NewGraphDBSession(s.ctx)
+	require.NoError(s.T(), err)
+	defer session.Close(s.ctx)
+
+	result, err := session.ExecuteRead(s.ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		query := `
+			MATCH (from:Task {uuid: $fromTaskUUID})-[r]->(to:Task {uuid: $toTaskUUID})
+			RETURN type(r) as relationshipType
+			ORDER BY type(r)
+		`
+		return tx.Run(s.ctx, query, map[string]any{
+			"fromTaskUUID": task1.UUID.String(),
+			"toTaskUUID":   task2.UUID.String(),
+		})
+	})
+	require.NoError(s.T(), err)
+
+	records := result.(neo4j.ResultWithContext)
+	var relationshipTypes []string
+	for records.Next(s.ctx) {
+		record := records.Record()
+		var relType string
+		relType = record.Values[0].(string)
+		relationshipTypes = append(relationshipTypes, relType)
+	}
+
+	require.NoError(s.T(), records.Err())
+	assert.Len(s.T(), relationshipTypes, 4)
+	assert.Contains(s.T(), relationshipTypes, "PARENT_OF")
+	assert.Contains(s.T(), relationshipTypes, "BLOCKS")
+	assert.Contains(s.T(), relationshipTypes, "RELATES_TO")
+	assert.Contains(s.T(), relationshipTypes, "DUPLICATE_OF")
+}
+
+// TestCreateTaskLinks_BidirectionalRelationships tests creating relationships in both directions
+func (s *TaskAccessorTestSuite) TestCreateTaskLinks_BidirectionalRelationships() {
+
+	user := s.accessor.CreateTestUser(s.T())
+	task1 := s.accessor.CreateTestTask(s.T(), user)
+	task2 := s.accessor.CreateTestTask(s.T(), user)
+
+	// Create relationships in both directions
+	err := s.accessor.CreateTaskLinks(s.ctx, task1.UUID, task2.UUID, models.TaskLinkBlocks)
+	require.NoError(s.T(), err)
+
+	err = s.accessor.CreateTaskLinks(s.ctx, task2.UUID, task1.UUID, models.TaskLinkRelatesTo)
+	require.NoError(s.T(), err)
+
+	// Verify both relationships exist
+	session, err := s.accessor.DBConnection.NewGraphDBSession(s.ctx)
+	require.NoError(s.T(), err)
+	defer session.Close(s.ctx)
+
+	result, err := session.ExecuteRead(s.ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		query := `
+			MATCH (from:Task {uuid: $fromTaskUUID})-[r]->(to:Task {uuid: $toTaskUUID})
+			RETURN type(r) as relationshipType
+			ORDER BY type(r)
+		`
+		return tx.Run(s.ctx, query, map[string]any{
+			"fromTaskUUID": task1.UUID.String(),
+			"toTaskUUID":   task2.UUID.String(),
+		})
+	})
+	require.NoError(s.T(), err)
+
+	records := result.(neo4j.ResultWithContext)
+	record, err := records.Single(s.ctx)
+	require.NoError(s.T(), err)
+
+	var relType string
+	relType = record.Values[0].(string)
+	assert.Equal(s.T(), "BLOCKS", relType)
+
+	// Check reverse relationship
+	result2, err := session.ExecuteRead(s.ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		query := `
+			MATCH (from:Task {uuid: $fromTaskUUID})-[r]->(to:Task {uuid: $toTaskUUID})
+			RETURN type(r) as relationshipType
+		`
+		return tx.Run(s.ctx, query, map[string]any{
+			"fromTaskUUID": task2.UUID.String(),
+			"toTaskUUID":   task1.UUID.String(),
+		})
+	})
+	require.NoError(s.T(), err)
+
+	records2 := result2.(neo4j.ResultWithContext)
+	record2, err := records2.Single(s.ctx)
+	require.NoError(s.T(), err)
+
+	var relType2 string
+	relType2 = record2.Values[0].(string)
+	assert.Equal(s.T(), "RELATES_TO", relType2)
 }

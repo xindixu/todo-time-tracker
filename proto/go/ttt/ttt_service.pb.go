@@ -825,7 +825,7 @@ func (x *GetTaskResp) GetTask() *model.Task {
 	return nil
 }
 
-type LinkTasksReq struct {
+type CreateTaskLinksReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Context       *context.Context       `protobuf:"bytes,1,opt,name=context,proto3" json:"context,omitempty"`
 	FromTaskUuid  string                 `protobuf:"bytes,2,opt,name=from_task_uuid,json=fromTaskUuid,proto3" json:"from_task_uuid,omitempty"`
@@ -835,20 +835,20 @@ type LinkTasksReq struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LinkTasksReq) Reset() {
-	*x = LinkTasksReq{}
+func (x *CreateTaskLinksReq) Reset() {
+	*x = CreateTaskLinksReq{}
 	mi := &file_proto_ttt_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LinkTasksReq) String() string {
+func (x *CreateTaskLinksReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LinkTasksReq) ProtoMessage() {}
+func (*CreateTaskLinksReq) ProtoMessage() {}
 
-func (x *LinkTasksReq) ProtoReflect() protoreflect.Message {
+func (x *CreateTaskLinksReq) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_ttt_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -860,59 +860,59 @@ func (x *LinkTasksReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LinkTasksReq.ProtoReflect.Descriptor instead.
-func (*LinkTasksReq) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateTaskLinksReq.ProtoReflect.Descriptor instead.
+func (*CreateTaskLinksReq) Descriptor() ([]byte, []int) {
 	return file_proto_ttt_service_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *LinkTasksReq) GetContext() *context.Context {
+func (x *CreateTaskLinksReq) GetContext() *context.Context {
 	if x != nil {
 		return x.Context
 	}
 	return nil
 }
 
-func (x *LinkTasksReq) GetFromTaskUuid() string {
+func (x *CreateTaskLinksReq) GetFromTaskUuid() string {
 	if x != nil {
 		return x.FromTaskUuid
 	}
 	return ""
 }
 
-func (x *LinkTasksReq) GetToTaskUuid() string {
+func (x *CreateTaskLinksReq) GetToTaskUuid() string {
 	if x != nil {
 		return x.ToTaskUuid
 	}
 	return ""
 }
 
-func (x *LinkTasksReq) GetLink() model.Task_Link {
+func (x *CreateTaskLinksReq) GetLink() model.Task_Link {
 	if x != nil {
 		return x.Link
 	}
 	return model.Task_Link(0)
 }
 
-type LinkTasksResp struct {
+type CreateTaskLinksResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LinkTasksResp) Reset() {
-	*x = LinkTasksResp{}
+func (x *CreateTaskLinksResp) Reset() {
+	*x = CreateTaskLinksResp{}
 	mi := &file_proto_ttt_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LinkTasksResp) String() string {
+func (x *CreateTaskLinksResp) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LinkTasksResp) ProtoMessage() {}
+func (*CreateTaskLinksResp) ProtoMessage() {}
 
-func (x *LinkTasksResp) ProtoReflect() protoreflect.Message {
+func (x *CreateTaskLinksResp) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_ttt_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -924,9 +924,113 @@ func (x *LinkTasksResp) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LinkTasksResp.ProtoReflect.Descriptor instead.
-func (*LinkTasksResp) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateTaskLinksResp.ProtoReflect.Descriptor instead.
+func (*CreateTaskLinksResp) Descriptor() ([]byte, []int) {
 	return file_proto_ttt_service_proto_rawDescGZIP(), []int{17}
+}
+
+type GetTaskLinksReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Context       *context.Context       `protobuf:"bytes,1,opt,name=context,proto3" json:"context,omitempty"`
+	FromTaskUuid  string                 `protobuf:"bytes,2,opt,name=from_task_uuid,json=fromTaskUuid,proto3" json:"from_task_uuid,omitempty"`
+	ToTaskUuid    string                 `protobuf:"bytes,3,opt,name=to_task_uuid,json=toTaskUuid,proto3" json:"to_task_uuid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTaskLinksReq) Reset() {
+	*x = GetTaskLinksReq{}
+	mi := &file_proto_ttt_service_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTaskLinksReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTaskLinksReq) ProtoMessage() {}
+
+func (x *GetTaskLinksReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_ttt_service_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTaskLinksReq.ProtoReflect.Descriptor instead.
+func (*GetTaskLinksReq) Descriptor() ([]byte, []int) {
+	return file_proto_ttt_service_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *GetTaskLinksReq) GetContext() *context.Context {
+	if x != nil {
+		return x.Context
+	}
+	return nil
+}
+
+func (x *GetTaskLinksReq) GetFromTaskUuid() string {
+	if x != nil {
+		return x.FromTaskUuid
+	}
+	return ""
+}
+
+func (x *GetTaskLinksReq) GetToTaskUuid() string {
+	if x != nil {
+		return x.ToTaskUuid
+	}
+	return ""
+}
+
+type GetTaskLinksResp struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Links         []model.Task_Link      `protobuf:"varint,1,rep,packed,name=links,proto3,enum=model.Task_Link" json:"links,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTaskLinksResp) Reset() {
+	*x = GetTaskLinksResp{}
+	mi := &file_proto_ttt_service_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTaskLinksResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTaskLinksResp) ProtoMessage() {}
+
+func (x *GetTaskLinksResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_ttt_service_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTaskLinksResp.ProtoReflect.Descriptor instead.
+func (*GetTaskLinksResp) Descriptor() ([]byte, []int) {
+	return file_proto_ttt_service_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetTaskLinksResp) GetLinks() []model.Task_Link {
+	if x != nil {
+		return x.Links
+	}
+	return nil
 }
 
 var File_proto_ttt_service_proto protoreflect.FileDescriptor
@@ -983,14 +1087,21 @@ const file_proto_ttt_service_proto_rawDesc = "" +
 	"\acontext\x18\x01 \x01(\v2\x10.context.ContextR\acontext\x12\x12\n" +
 	"\x04uuid\x18\x02 \x01(\tR\x04uuid\".\n" +
 	"\vGetTaskResp\x12\x1f\n" +
-	"\x04task\x18\x01 \x01(\v2\v.model.TaskR\x04task\"\xa8\x01\n" +
-	"\fLinkTasksReq\x12*\n" +
+	"\x04task\x18\x01 \x01(\v2\v.model.TaskR\x04task\"\xae\x01\n" +
+	"\x12CreateTaskLinksReq\x12*\n" +
 	"\acontext\x18\x01 \x01(\v2\x10.context.ContextR\acontext\x12$\n" +
 	"\x0efrom_task_uuid\x18\x02 \x01(\tR\ffromTaskUuid\x12 \n" +
 	"\fto_task_uuid\x18\x03 \x01(\tR\n" +
 	"toTaskUuid\x12$\n" +
-	"\x04link\x18\x04 \x01(\x0e2\x10.model.Task.LinkR\x04link\"\x0f\n" +
-	"\rLinkTasksResp2\xd4\x03\n" +
+	"\x04link\x18\x04 \x01(\x0e2\x10.model.Task.LinkR\x04link\"\x15\n" +
+	"\x13CreateTaskLinksResp\"\x85\x01\n" +
+	"\x0fGetTaskLinksReq\x12*\n" +
+	"\acontext\x18\x01 \x01(\v2\x10.context.ContextR\acontext\x12$\n" +
+	"\x0efrom_task_uuid\x18\x02 \x01(\tR\ffromTaskUuid\x12 \n" +
+	"\fto_task_uuid\x18\x03 \x01(\tR\n" +
+	"toTaskUuid\":\n" +
+	"\x10GetTaskLinksResp\x12&\n" +
+	"\x05links\x18\x01 \x03(\x0e2\x10.model.Task.LinkR\x05links2\xa3\x04\n" +
 	"\n" +
 	"TTTService\x125\n" +
 	"\n" +
@@ -1002,8 +1113,9 @@ const file_proto_ttt_service_proto_rawDesc = "" +
 	"\tDeleteTag\x12\x11.ttt.DeleteTagReq\x1a\x12.ttt.DeleteTagResp\x125\n" +
 	"\n" +
 	"CreateTask\x12\x12.ttt.CreateTaskReq\x1a\x13.ttt.CreateTaskResp\x12,\n" +
-	"\aGetTask\x12\x0f.ttt.GetTaskReq\x1a\x10.ttt.GetTaskResp\x122\n" +
-	"\tLinkTasks\x12\x11.ttt.LinkTasksReq\x1a\x12.ttt.LinkTasksRespB Z\x1etodo-time-tracker/proto/go/tttb\x06proto3"
+	"\aGetTask\x12\x0f.ttt.GetTaskReq\x1a\x10.ttt.GetTaskResp\x12D\n" +
+	"\x0fCreateTaskLinks\x12\x17.ttt.CreateTaskLinksReq\x1a\x18.ttt.CreateTaskLinksResp\x12;\n" +
+	"\fGetTaskLinks\x12\x14.ttt.GetTaskLinksReq\x1a\x15.ttt.GetTaskLinksRespB Z\x1etodo-time-tracker/proto/go/tttb\x06proto3"
 
 var (
 	file_proto_ttt_service_proto_rawDescOnce sync.Once
@@ -1017,7 +1129,7 @@ func file_proto_ttt_service_proto_rawDescGZIP() []byte {
 	return file_proto_ttt_service_proto_rawDescData
 }
 
-var file_proto_ttt_service_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_proto_ttt_service_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_proto_ttt_service_proto_goTypes = []any{
 	(*CreateUserReq)(nil),       // 0: ttt.CreateUserReq
 	(*CreateUserResp)(nil),      // 1: ttt.CreateUserResp
@@ -1035,59 +1147,65 @@ var file_proto_ttt_service_proto_goTypes = []any{
 	(*CreateTaskResp)(nil),      // 13: ttt.CreateTaskResp
 	(*GetTaskReq)(nil),          // 14: ttt.GetTaskReq
 	(*GetTaskResp)(nil),         // 15: ttt.GetTaskResp
-	(*LinkTasksReq)(nil),        // 16: ttt.LinkTasksReq
-	(*LinkTasksResp)(nil),       // 17: ttt.LinkTasksResp
-	(*context.Context)(nil),     // 18: context.Context
-	(*model.User)(nil),          // 19: model.User
-	(*model.Tag)(nil),           // 20: model.Tag
-	(model.Task_Status)(0),      // 21: model.Task.Status
-	(*durationpb.Duration)(nil), // 22: google.protobuf.Duration
-	(*model.Task)(nil),          // 23: model.Task
-	(model.Task_Link)(0),        // 24: model.Task.Link
+	(*CreateTaskLinksReq)(nil),  // 16: ttt.CreateTaskLinksReq
+	(*CreateTaskLinksResp)(nil), // 17: ttt.CreateTaskLinksResp
+	(*GetTaskLinksReq)(nil),     // 18: ttt.GetTaskLinksReq
+	(*GetTaskLinksResp)(nil),    // 19: ttt.GetTaskLinksResp
+	(*context.Context)(nil),     // 20: context.Context
+	(*model.User)(nil),          // 21: model.User
+	(*model.Tag)(nil),           // 22: model.Tag
+	(model.Task_Status)(0),      // 23: model.Task.Status
+	(*durationpb.Duration)(nil), // 24: google.protobuf.Duration
+	(*model.Task)(nil),          // 25: model.Task
+	(model.Task_Link)(0),        // 26: model.Task.Link
 }
 var file_proto_ttt_service_proto_depIdxs = []int32{
-	18, // 0: ttt.CreateUserReq.context:type_name -> context.Context
-	19, // 1: ttt.CreateUserResp.user:type_name -> model.User
-	18, // 2: ttt.GetTagReq.context:type_name -> context.Context
-	20, // 3: ttt.GetTagResp.tag:type_name -> model.Tag
-	18, // 4: ttt.ListTagsReq.context:type_name -> context.Context
-	20, // 5: ttt.ListTagsResp.tags:type_name -> model.Tag
-	18, // 6: ttt.CreateTagReq.context:type_name -> context.Context
-	20, // 7: ttt.CreateTagResp.tag:type_name -> model.Tag
-	18, // 8: ttt.UpdateTagReq.context:type_name -> context.Context
-	20, // 9: ttt.UpdateTagResp.tag:type_name -> model.Tag
-	18, // 10: ttt.DeleteTagReq.context:type_name -> context.Context
-	18, // 11: ttt.CreateTaskReq.context:type_name -> context.Context
-	21, // 12: ttt.CreateTaskReq.status:type_name -> model.Task.Status
-	22, // 13: ttt.CreateTaskReq.estimated_duration:type_name -> google.protobuf.Duration
-	23, // 14: ttt.CreateTaskResp.task:type_name -> model.Task
-	18, // 15: ttt.GetTaskReq.context:type_name -> context.Context
-	23, // 16: ttt.GetTaskResp.task:type_name -> model.Task
-	18, // 17: ttt.LinkTasksReq.context:type_name -> context.Context
-	24, // 18: ttt.LinkTasksReq.link:type_name -> model.Task.Link
-	0,  // 19: ttt.TTTService.CreateUser:input_type -> ttt.CreateUserReq
-	2,  // 20: ttt.TTTService.GetTag:input_type -> ttt.GetTagReq
-	4,  // 21: ttt.TTTService.ListTags:input_type -> ttt.ListTagsReq
-	6,  // 22: ttt.TTTService.CreateTag:input_type -> ttt.CreateTagReq
-	8,  // 23: ttt.TTTService.UpdateTag:input_type -> ttt.UpdateTagReq
-	10, // 24: ttt.TTTService.DeleteTag:input_type -> ttt.DeleteTagReq
-	12, // 25: ttt.TTTService.CreateTask:input_type -> ttt.CreateTaskReq
-	14, // 26: ttt.TTTService.GetTask:input_type -> ttt.GetTaskReq
-	16, // 27: ttt.TTTService.LinkTasks:input_type -> ttt.LinkTasksReq
-	1,  // 28: ttt.TTTService.CreateUser:output_type -> ttt.CreateUserResp
-	3,  // 29: ttt.TTTService.GetTag:output_type -> ttt.GetTagResp
-	5,  // 30: ttt.TTTService.ListTags:output_type -> ttt.ListTagsResp
-	7,  // 31: ttt.TTTService.CreateTag:output_type -> ttt.CreateTagResp
-	9,  // 32: ttt.TTTService.UpdateTag:output_type -> ttt.UpdateTagResp
-	11, // 33: ttt.TTTService.DeleteTag:output_type -> ttt.DeleteTagResp
-	13, // 34: ttt.TTTService.CreateTask:output_type -> ttt.CreateTaskResp
-	15, // 35: ttt.TTTService.GetTask:output_type -> ttt.GetTaskResp
-	17, // 36: ttt.TTTService.LinkTasks:output_type -> ttt.LinkTasksResp
-	28, // [28:37] is the sub-list for method output_type
-	19, // [19:28] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	20, // 0: ttt.CreateUserReq.context:type_name -> context.Context
+	21, // 1: ttt.CreateUserResp.user:type_name -> model.User
+	20, // 2: ttt.GetTagReq.context:type_name -> context.Context
+	22, // 3: ttt.GetTagResp.tag:type_name -> model.Tag
+	20, // 4: ttt.ListTagsReq.context:type_name -> context.Context
+	22, // 5: ttt.ListTagsResp.tags:type_name -> model.Tag
+	20, // 6: ttt.CreateTagReq.context:type_name -> context.Context
+	22, // 7: ttt.CreateTagResp.tag:type_name -> model.Tag
+	20, // 8: ttt.UpdateTagReq.context:type_name -> context.Context
+	22, // 9: ttt.UpdateTagResp.tag:type_name -> model.Tag
+	20, // 10: ttt.DeleteTagReq.context:type_name -> context.Context
+	20, // 11: ttt.CreateTaskReq.context:type_name -> context.Context
+	23, // 12: ttt.CreateTaskReq.status:type_name -> model.Task.Status
+	24, // 13: ttt.CreateTaskReq.estimated_duration:type_name -> google.protobuf.Duration
+	25, // 14: ttt.CreateTaskResp.task:type_name -> model.Task
+	20, // 15: ttt.GetTaskReq.context:type_name -> context.Context
+	25, // 16: ttt.GetTaskResp.task:type_name -> model.Task
+	20, // 17: ttt.CreateTaskLinksReq.context:type_name -> context.Context
+	26, // 18: ttt.CreateTaskLinksReq.link:type_name -> model.Task.Link
+	20, // 19: ttt.GetTaskLinksReq.context:type_name -> context.Context
+	26, // 20: ttt.GetTaskLinksResp.links:type_name -> model.Task.Link
+	0,  // 21: ttt.TTTService.CreateUser:input_type -> ttt.CreateUserReq
+	2,  // 22: ttt.TTTService.GetTag:input_type -> ttt.GetTagReq
+	4,  // 23: ttt.TTTService.ListTags:input_type -> ttt.ListTagsReq
+	6,  // 24: ttt.TTTService.CreateTag:input_type -> ttt.CreateTagReq
+	8,  // 25: ttt.TTTService.UpdateTag:input_type -> ttt.UpdateTagReq
+	10, // 26: ttt.TTTService.DeleteTag:input_type -> ttt.DeleteTagReq
+	12, // 27: ttt.TTTService.CreateTask:input_type -> ttt.CreateTaskReq
+	14, // 28: ttt.TTTService.GetTask:input_type -> ttt.GetTaskReq
+	16, // 29: ttt.TTTService.CreateTaskLinks:input_type -> ttt.CreateTaskLinksReq
+	18, // 30: ttt.TTTService.GetTaskLinks:input_type -> ttt.GetTaskLinksReq
+	1,  // 31: ttt.TTTService.CreateUser:output_type -> ttt.CreateUserResp
+	3,  // 32: ttt.TTTService.GetTag:output_type -> ttt.GetTagResp
+	5,  // 33: ttt.TTTService.ListTags:output_type -> ttt.ListTagsResp
+	7,  // 34: ttt.TTTService.CreateTag:output_type -> ttt.CreateTagResp
+	9,  // 35: ttt.TTTService.UpdateTag:output_type -> ttt.UpdateTagResp
+	11, // 36: ttt.TTTService.DeleteTag:output_type -> ttt.DeleteTagResp
+	13, // 37: ttt.TTTService.CreateTask:output_type -> ttt.CreateTaskResp
+	15, // 38: ttt.TTTService.GetTask:output_type -> ttt.GetTaskResp
+	17, // 39: ttt.TTTService.CreateTaskLinks:output_type -> ttt.CreateTaskLinksResp
+	19, // 40: ttt.TTTService.GetTaskLinks:output_type -> ttt.GetTaskLinksResp
+	31, // [31:41] is the sub-list for method output_type
+	21, // [21:31] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_proto_ttt_service_proto_init() }
@@ -1101,7 +1219,7 @@ func file_proto_ttt_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_ttt_service_proto_rawDesc), len(file_proto_ttt_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
