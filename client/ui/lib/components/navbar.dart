@@ -14,12 +14,13 @@ class NavbarItem {
 }
 
 const navbarItems = [
-  NavbarItem(title: 'Tasks', icon: Icons.list, route: '/tasks'),
-  NavbarItem(title: 'Schedule', icon: Icons.calendar_today, route: '/schedule'),
-  NavbarItem(title: 'Track', icon: Icons.work, route: '/track'),
+  NavbarItem(title: 'Tasks', icon: Icons.list_rounded, route: '/tasks'),
+  NavbarItem(title: 'Schedule', icon: Icons.view_column_rounded, route: '/schedule'),
+  NavbarItem(title: 'Track', icon: Icons.timer_rounded, route: '/track'),
+  NavbarItem(title: 'Analytics', icon: Icons.bar_chart_rounded, route: '/analytics'),
 ];
 
-const settingsItem = NavbarItem(title: 'Settings', icon: Icons.settings, route: '/settings');
+const settingsItem = NavbarItem(title: 'Settings', icon: Icons.settings_rounded, route: '/settings');
 
 class Navbar extends StatelessWidget {
   const Navbar({super.key});

@@ -56,6 +56,18 @@ final router = GoRouter(
       },
     ),
     GoRoute(
+      path: '/analytics',
+      pageBuilder: (BuildContext context, GoRouterState state) {
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: const AppLayout(child: Center(child: Text('Analytics'))),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        );
+      },
+    ),
+    GoRoute(
       path: '/settings',
       pageBuilder: (BuildContext context, GoRouterState state) {
         return CustomTransitionPage(

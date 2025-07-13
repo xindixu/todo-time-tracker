@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:ui/models/tasks.dart';
 
-class TaskLists extends StatelessWidget {
-  const TaskLists({super.key, required this.taskRepository});
+class ListTasks extends StatelessWidget {
+  // const ListTasks({super.key, required this.taskRepository});
+  // final TaskRepository taskRepository;
 
-  final TaskRepository taskRepository;
+  const ListTasks({super.key});
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Task Lists'),
-      ),
       body: ListView.builder(
         itemBuilder: (context, index) {
           return ListTile(
