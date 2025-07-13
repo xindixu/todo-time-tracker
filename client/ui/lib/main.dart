@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:ui/rpc/client.dart';
 import 'package:ui/utils/routes.dart';
 
-void main() {
-  TTTService().init();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await TTTService().init();
   runApp(const App());
 }
 
